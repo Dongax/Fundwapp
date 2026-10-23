@@ -1,0 +1,246 @@
+{
+  "settings": [
+    {
+      "key": "app_name",
+      "value": "Fundwapp",
+      "type": "string",
+      "public": true,
+      "description": "Product name shown in the UI, emails and SMS"
+    },
+    {
+      "key": "app_tagline",
+      "value": "Raise money together, in minutes.",
+      "type": "string",
+      "public": true,
+      "description": "Short tagline for the home page and link previews"
+    },
+    {
+      "key": "support_email",
+      "value": "support@example.com",
+      "type": "string",
+      "public": true,
+      "description": "Contact shown in the footer"
+    },
+    {
+      "key": "registrable_roles",
+      "value": [
+        "organizer",
+        "contributor"
+      ],
+      "type": "json",
+      "public": true,
+      "description": "Roles a person may pick when registering (admin is never self-service)"
+    },
+    {
+      "key": "require_campaign_approval",
+      "value": true,
+      "type": "boolean",
+      "public": false,
+      "description": "New fundraisers wait for an admin to approve them before going live"
+    },
+    {
+      "key": "allow_anonymous_contributions",
+      "value": true,
+      "type": "boolean",
+      "public": true,
+      "description": "Let contributors hide their name on the public page"
+    },
+    {
+      "key": "min_goal_amount",
+      "value": "1000",
+      "type": "decimal",
+      "public": true,
+      "description": "Smallest fundraising goal an organizer can set (major units)"
+    },
+    {
+      "key": "max_campaign_duration_days",
+      "value": 365,
+      "type": "integer",
+      "public": true,
+      "description": "Longest allowed gap between start and end date"
+    },
+    {
+      "key": "suggested_contribution_amounts",
+      "value": [
+        "100",
+        "500",
+        "1000",
+        "5000"
+      ],
+      "type": "json",
+      "public": true,
+      "description": "Quick-pick amounts shown on the contribute form (major units)"
+    },
+    {
+      "key": "platform_fee_percent",
+      "value": "0",
+      "type": "decimal",
+      "public": false,
+      "description": "Percentage deducted from each withdrawal (0 = no fee)"
+    },
+    {
+      "key": "min_withdrawal_amount",
+      "value": "100",
+      "type": "decimal",
+      "public": true,
+      "description": "Smallest withdrawal request (major units)"
+    },
+    {
+      "key": "public_recent_contributors_limit",
+      "value": 10,
+      "type": "integer",
+      "public": false,
+      "description": "How many recent contributions appear on a public fundraiser page"
+    },
+    {
+      "key": "payment_attempt_expiry_minutes",
+      "value": 10,
+      "type": "integer",
+      "public": false,
+      "description": "Pending payments with no gateway answer after this long are marked expired"
+    },
+    {
+      "key": "status_poll_verify_after_seconds",
+      "value": 15,
+      "type": "integer",
+      "public": false,
+      "description": "While a contributor waits, ask the gateway directly if no callback arrived after this many seconds"
+    },
+    {
+      "key": "reconcile_pending_after_minutes",
+      "value": 2,
+      "type": "integer",
+      "public": false,
+      "description": "Reconciliation re-checks pending payments older than this"
+    },
+    {
+      "key": "reconcile_window_hours",
+      "value": 48,
+      "type": "integer",
+      "public": false,
+      "description": "Reconciliation cross-checks confirmed contributions from the last N hours against the gateway"
+    },
+    {
+      "key": "flag_large_contribution_amount",
+      "value": "100000",
+      "type": "decimal",
+      "public": false,
+      "description": "Contributions at or above this amount are flagged for review (0 disables)"
+    },
+    {
+      "key": "flag_large_withdrawal_amount",
+      "value": "250000",
+      "type": "decimal",
+      "public": false,
+      "description": "Withdrawal requests at or above this amount are flagged for review (0 disables)"
+    },
+    {
+      "key": "flag_failed_attempts_threshold",
+      "value": 3,
+      "type": "integer",
+      "public": false,
+      "description": "Flag a phone number after this many failed payments inside the window (0 disables)"
+    },
+    {
+      "key": "flag_failed_attempts_window_minutes",
+      "value": 30,
+      "type": "integer",
+      "public": false,
+      "description": "Window used for the failed-payments rule"
+    },
+    {
+      "key": "flag_reports_threshold",
+      "value": 3,
+      "type": "integer",
+      "public": false,
+      "description": "Open user reports on one fundraiser that escalate its severity to high"
+    },
+    {
+      "key": "contribution_receipt_enabled",
+      "value": true,
+      "type": "boolean",
+      "public": false,
+      "description": "Send an SMS/email receipt to contributors"
+    }
+  ],
+  "categories": [
+    {
+      "code": "medical",
+      "label": "Medical & health",
+      "sort_order": 10
+    },
+    {
+      "code": "education",
+      "label": "Education & school fees",
+      "sort_order": 20
+    },
+    {
+      "code": "church",
+      "label": "Church & faith",
+      "sort_order": 30
+    },
+    {
+      "code": "community",
+      "label": "Community & harambee",
+      "sort_order": 40
+    },
+    {
+      "code": "funeral",
+      "label": "Funeral & memorial",
+      "sort_order": 50
+    },
+    {
+      "code": "wedding",
+      "label": "Wedding & events",
+      "sort_order": 60
+    },
+    {
+      "code": "business",
+      "label": "Business & startups",
+      "sort_order": 70
+    },
+    {
+      "code": "ngo",
+      "label": "NGO & charity",
+      "sort_order": 80
+    },
+    {
+      "code": "emergency",
+      "label": "Emergency relief",
+      "sort_order": 90
+    },
+    {
+      "code": "other",
+      "label": "Other",
+      "sort_order": 100
+    }
+  ],
+  "payment_methods": [
+    {
+      "code": "mpesa",
+      "label": "M-Pesa",
+      "gateway": "mpesa",
+      "requires_phone": true,
+      "requires_email": false,
+      "allows_decimals": false,
+      "min_amount": "10",
+      "max_amount": "250000",
+      "sort_order": 10,
+      "is_active": true,
+      "instructions": "You will get an M-Pesa prompt on this phone. Enter your PIN to complete the payment."
+    }
+  ],
+  "payout_methods": [
+    {
+      "code": "mpesa",
+      "label": "M-Pesa",
+      "gateway": "mpesa_b2c",
+      "destination_label": "M-Pesa phone number",
+      "destination_is_phone": true,
+      "min_amount": "10",
+      "max_amount": "250000",
+      "sort_order": 10,
+      "is_active": true
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+[
+  { "event": "otp_verification", "channel": "sms", "is_sensitive": true, "body": "{{app_name}}: your verification code is {{code}}. It expires in {{minutes}} minutes." },
+  { "event": "otp_verification", "channel": "email", "is_sensitive": true, "subject": "Your {{app_name}} verification code", "body": "Hi {{name}},\n\nYour verification code is {{code}}. It expires in {{minutes}} minutes.\n\nIf you did not request this, you can ignore this message." },
+  { "event": "otp_password_reset", "channel": "sms", "is_sensitive": true, "body": "{{app_name}}: your password reset code is {{code}}. It expires in {{minutes}} minutes." },
+  { "event": "otp_password_reset", "channel": "email", "is_sensitive": true, "subject": "Reset your {{app_name}} password", "body": "Hi {{name}},\n\nUse code {{code}} to reset your password. It expires in {{minutes}} minutes.\n\nIf you did not request this, you can ignore this message." },
+  { "event": "otp_login", "channel": "sms", "is_sensitive": true, "body": "{{app_name}}: your sign-in code is {{code}}. It expires in {{minutes}} minutes." },
+  { "event": "otp_login", "channel": "email", "is_sensitive": true, "subject": "Your {{app_name}} sign-in code", "body": "Hi {{name}},\n\nYour sign-in code is {{code}}. It expires in {{minutes}} minutes." },
+
+  { "event": "campaign_created", "channel": "sms", "body": "{{app_name}}: \"{{title}}\" has been created. {{status_message}} Link: {{url}}" },
+  { "event": "campaign_created", "channel": "email", "subject": "Your fundraiser \"{{title}}\" was created", "body": "Hi {{name}},\n\nYour fundraiser \"{{title}}\" has been created. {{status_message}}\n\nShare link: {{url}}" },
+  { "event": "campaign_approved", "channel": "sms", "body": "{{app_name}}: \"{{title}}\" is approved and live. Share it: {{url}}" },
+  { "event": "campaign_approved", "channel": "email", "subject": "\"{{title}}\" is live", "body": "Hi {{name}},\n\nGood news - your fundraiser \"{{title}}\" is approved and live.\n\nShare link: {{url}}" },
+  { "event": "campaign_rejected", "channel": "sms", "body": "{{app_name}}: \"{{title}}\" was not approved. Reason: {{reason}}" },
+  { "event": "campaign_rejected", "channel": "email", "subject": "\"{{title}}\" was not approved", "body": "Hi {{name}},\n\nYour fundraiser \"{{title}}\" was not approved.\n\nReason: {{reason}}" },
+  { "event": "campaign_suspended", "channel": "sms", "body": "{{app_name}}: \"{{title}}\" has been paused by our team. Reason: {{reason}}" },
+  { "event": "campaign_suspended", "channel": "email", "subject": "\"{{title}}\" has been paused", "body": "Hi {{name}},\n\nYour fundraiser \"{{title}}\" has been paused by our team.\n\nReason: {{reason}}" },
+
+  { "event": "contribution_received", "channel": "sms", "body": "{{app_name}}: {{contributor}} gave {{amount}} to \"{{title}}\". Raised so far: {{raised}}." },
+  { "event": "contribution_received", "channel": "email", "subject": "New contribution to \"{{title}}\"", "body": "Hi {{name}},\n\n{{contributor}} contributed {{amount}} to \"{{title}}\".\nRaised so far: {{raised}} of {{goal}}.\nReference: {{reference}}" },
+  { "event": "contribution_receipt", "channel": "sms", "body": "{{app_name}}: thank you {{contributor}}! We received {{amount}} for \"{{title}}\". Ref {{reference}}." },
+  { "event": "contribution_receipt", "channel": "email", "subject": "Your contribution to \"{{title}}\"", "body": "Hi {{contributor}},\n\nThank you. We received your contribution of {{amount}} to \"{{title}}\".\nReference: {{reference}}" },
+  { "event": "goal_reached", "channel": "sms", "body": "{{app_name}}: \"{{title}}\" has reached its goal of {{goal}}!" },
+  { "event": "goal_reached", "channel": "email", "subject": "\"{{title}}\" reached its goal", "body": "Hi {{name}},\n\nYour fundraiser \"{{title}}\" has reached its goal of {{goal}}. Raised so far: {{raised}}." },
+
+  { "event": "withdrawal_requested", "channel": "sms", "body": "{{app_name}}: we received your withdrawal request of {{amount}} from \"{{title}}\". It is awaiting review." },
+  { "event": "withdrawal_requested", "channel": "email", "subject": "Withdrawal request received", "body": "Hi {{name}},\n\nWe received your request to withdraw {{amount}} (you receive {{net_amount}}) from \"{{title}}\". It is awaiting review." },
+  { "event": "withdrawal_approved", "channel": "sms", "body": "{{app_name}}: your withdrawal of {{amount}} from \"{{title}}\" was approved and is being paid out." },
+  { "event": "withdrawal_approved", "channel": "email", "subject": "Withdrawal approved", "body": "Hi {{name}},\n\nYour withdrawal of {{amount}} from \"{{title}}\" was approved and is being paid out." },
+  { "event": "withdrawal_completed", "channel": "sms", "body": "{{app_name}}: {{net_amount}} was sent to {{destination}}. Ref {{reference}}." },
+  { "event": "withdrawal_completed", "channel": "email", "subject": "Withdrawal completed", "body": "Hi {{name}},\n\n{{net_amount}} from \"{{title}}\" was sent to {{destination}}.\nReference: {{reference}}" },
+  { "event": "withdrawal_rejected", "channel": "sms", "body": "{{app_name}}: your withdrawal of {{amount}} from \"{{title}}\" was not approved. Reason: {{reason}}" },
+  { "event": "withdrawal_rejected", "channel": "email", "subject": "Withdrawal not approved", "body": "Hi {{name}},\n\nYour withdrawal of {{amount}} from \"{{title}}\" was not approved.\n\nReason: {{reason}}" },
+  { "event": "withdrawal_failed", "channel": "sms", "body": "{{app_name}}: the payout of {{amount}} from \"{{title}}\" failed ({{reason}}). Our team will follow up." },
+  { "event": "withdrawal_failed", "channel": "email", "subject": "Withdrawal payout failed", "body": "Hi {{name}},\n\nThe payout of {{amount}} from \"{{title}}\" failed ({{reason}}). Our team will follow up." }
+]

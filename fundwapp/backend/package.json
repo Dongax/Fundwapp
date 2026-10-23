@@ -1,0 +1,33 @@
+{
+  "name": "fundwapp-backend",
+  "version": "1.0.0",
+  "description": "Fundwapp backend API - Node.js/Express",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "migrate": "node src/migrations/runMigrations.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "sequelize": "^6.37.3",
+    "pg": "^8.12.0",
+    "pg-hstore": "^2.3.4",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "dotenv": "^16.4.5",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "express-validator": "^7.1.0",
+    "uuid": "^9.0.1",
+    "axios": "^1.7.2",
+    "qrcode": "^1.5.3",
+    "nanoid": "^3.3.7",
+    "nodemailer": "^6.9.14",
+    "morgan": "^1.10.0",
+    "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}
