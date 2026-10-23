@@ -93,6 +93,19 @@ const config = {
     atUsername: str('AT_USERNAME'),
     atApiKey: str('AT_API_KEY'),
     atSenderId: str('AT_SENDER_ID'),
+    twilio: {
+      baseUrl: str('TWILIO_BASE_URL', 'https://api.twilio.com'),
+      accountSid: str('TWILIO_ACCOUNT_SID'),
+      authToken: str('TWILIO_AUTH_TOKEN'),
+      from: str('TWILIO_FROM'),
+      messagingServiceSid: str('TWILIO_MESSAGING_SERVICE_SID'),
+    },
+    vonage: {
+      baseUrl: str('VONAGE_BASE_URL', 'https://rest.nexmo.com'),
+      apiKey: str('VONAGE_API_KEY'),
+      apiSecret: str('VONAGE_API_SECRET'),
+      from: str('VONAGE_FROM'),
+    },
   },
   email: {
     provider: str('EMAIL_PROVIDER', 'console'),

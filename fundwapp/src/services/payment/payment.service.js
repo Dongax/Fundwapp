@@ -16,7 +16,9 @@ import { getGateway } from './gateways/index.js';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const FINAL_FAILURES = ['failed', 'cancelled', 'expired'];
 
-export const callbackUrlFor = (gatewayName) => `${config.payment.callbackBaseUrl}/api/payments/callbacks/${gatewayName}/${config.payment.callbackSecret}`;
+// Safaricom rejects callback URLs that contain words like "mpesa" or "safaricom", so the public path uses neutral names.
+export const CALLBACK_SEGMENTS = { mpesa: 'stk' };
+export const callbackUrlFor = (gatewayName) => `${config.payment.callbackBaseUrl}/api/payments/callbacks/${CALLBACK_SEGMENTS[gatewayName] ?? gatewayName}/${config.payment.callbackSecret}`;
 
 export async function listActivePaymentMethods() {
   const rows = await all('SELECT * FROM payment_methods WHERE is_active = 1 ORDER BY sort_order, label');

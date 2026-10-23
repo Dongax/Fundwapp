@@ -5,7 +5,7 @@ import { logger } from '../utils/logger.js';
 import { notFound } from '../utils/errors.js';
 import { gatewayDrivers } from '../services/payment/gateways/index.js';
 import mpesa from '../services/payment/gateways/mpesa.js';
-import { getAttemptStatus, handleGatewayCallback, simulateSandbox } from '../services/payment/payment.service.js';
+import { getAttemptStatus, handleGatewayCallback, simulateSandbox, CALLBACK_SEGMENTS } from '../services/payment/payment.service.js';
 import { handleB2cResult } from '../services/withdrawal.service.js';
 
 const router = Router();
@@ -16,7 +16,7 @@ router.get('/:id/status', async (req, res) => res.json(await getAttemptStatus(re
 const secretOk = (given) => safeEqual(given, config.payment.callbackSecret);
 
 // M-Pesa B2C payout result (declared before the generic gateway route)
-router.post('/callbacks/mpesa-b2c/:secret', (req, res) => {
+router.post('/callbacks/b2c/:secret', (req, res) => {
   if (!secretOk(req.params.secret)) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Not found' } });
   res.json({ ResultCode: 0, ResultDesc: 'Accepted' });
   const parsed = mpesa.parseB2cResult(req);
@@ -25,11 +25,13 @@ router.post('/callbacks/mpesa-b2c/:secret', (req, res) => {
 });
 
 // Generic gateway webhook. We acknowledge immediately, then verify and settle in the background.
+const gatewayBySegment = Object.fromEntries(Object.entries(CALLBACK_SEGMENTS).map(([name, segment]) => [segment, name]));
 router.post('/callbacks/:gateway/:secret', (req, res) => {
-  const gateway = gatewayDrivers[req.params.gateway];
+  const name = gatewayBySegment[req.params.gateway];
+  const gateway = name ? gatewayDrivers[name] : undefined;
   if (!gateway || !secretOk(req.params.secret)) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Not found' } });
   res.json({ ResultCode: 0, ResultDesc: 'Accepted' });
-  handleGatewayCallback(req.params.gateway, req, gateway).catch((err) => logger.error(`${req.params.gateway} callback handling failed`, err));
+  handleGatewayCallback(name, req, gateway).catch((err) => logger.error(`${name} callback handling failed`, err));
   return undefined;
 });
 

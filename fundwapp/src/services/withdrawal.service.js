@@ -154,8 +154,8 @@ export async function payout(id) {
     await run("UPDATE withdrawals SET status = 'processing', failure_reason = NULL, gateway_reference = COALESCE(gateway_reference, ?), updated_at = ? WHERE id = ?", [w.id, nowIso(), id]);
     const result = await gateway.disburse({
       withdrawal: { ...w, net_amount: w.net_amount, payout_destination: w.payout_destination },
-      resultUrl: `${config.payment.callbackBaseUrl}/api/payments/callbacks/mpesa-b2c/${config.payment.callbackSecret}`,
-      timeoutUrl: `${config.payment.callbackBaseUrl}/api/payments/callbacks/mpesa-b2c/${config.payment.callbackSecret}`,
+      resultUrl: `${config.payment.callbackBaseUrl}/api/payments/callbacks/b2c/${config.payment.callbackSecret}`,
+      timeoutUrl: `${config.payment.callbackBaseUrl}/api/payments/callbacks/b2c/${config.payment.callbackSecret}`,
     });
     if (result.status === 'completed') await markCompleted(w, organizer, result.reference);
   } catch (err) {

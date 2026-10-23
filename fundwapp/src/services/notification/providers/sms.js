@@ -29,7 +29,45 @@ const africasTalking = {
   },
 };
 
-const providers = { console: consoleProvider, africastalking: africasTalking };
+const twilio = {
+  async send({ to, body }) {
+    const { baseUrl, accountSid, authToken, from, messagingServiceSid } = config.sms.twilio;
+    if (!accountSid || !authToken || !(from || messagingServiceSid)) {
+      throw new Error('TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN and TWILIO_FROM (or TWILIO_MESSAGING_SERVICE_SID) are required for SMS_PROVIDER=twilio');
+    }
+    const form = new URLSearchParams({ To: to, Body: body });
+    if (messagingServiceSid) form.set('MessagingServiceSid', messagingServiceSid);
+    else form.set('From', from);
+    const res = await fetch(`${baseUrl}/2010-04-01/Accounts/${accountSid}/Messages.json`, {
+      method: 'POST',
+      headers: { Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString('base64')}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: form,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(`Twilio rejected the message: ${data.message || res.status}${data.code ? ` (error ${data.code})` : ''}`);
+    return { id: data.sid };
+  },
+};
+
+const vonage = {
+  async send({ to, body }) {
+    const { baseUrl, apiKey, apiSecret, from } = config.sms.vonage;
+    if (!apiKey || !apiSecret || !from) throw new Error('VONAGE_API_KEY, VONAGE_API_SECRET and VONAGE_FROM are required for SMS_PROVIDER=vonage');
+    const res = await fetch(`${baseUrl}/sms/json`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ api_key: apiKey, api_secret: apiSecret, from, to: to.replace(/^\+/, ''), text: body }),
+    });
+    const data = await res.json().catch(() => ({}));
+    const msg = data?.messages?.[0];
+    if (!res.ok || !msg || String(msg.status) !== '0') {
+      throw new Error(`Vonage rejected the message: ${msg?.['error-text'] || res.status}${msg ? ` (status ${msg.status})` : ''}`);
+    }
+    return { id: msg['message-id'] };
+  },
+};
+
+const providers = { console: consoleProvider, africastalking: africasTalking, twilio, vonage };
 
 export function getSmsProvider() {
   const provider = providers[config.sms.provider];

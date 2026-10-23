@@ -19,7 +19,7 @@ Digital fundraising platform (M-Pesa only) built from the **Fundwapp System Desi
 
 Field names match the ERD exactly. Extra tables support the flows the SDD describes: `payment_attempts` (a payment is pending until the gateway confirms; **a contribution row is only created on confirmation**), `otp_codes`, `refresh_tokens`, `flags`, `reconciliation_runs`, `audit_logs`, `campaign_updates`.
 
-> **Deploying to Render?** Free plan, browser only: `DEPLOY_RENDER_FREE.md`. Paid/production: `DEPLOY_RENDER.md`. Both use `render.yaml`.
+> **Deploying?** Follow `DEPLOYMENT_GUIDE.md`: Render + Turso + Safaricom Daraja, free and browser-only, with go-live steps.
 
 ## 1. Run it locally (SQLite file)
 
@@ -72,10 +72,10 @@ Money is stored as integers in minor units (no floating point) and returned by t
 
 ## 4. Going live with payments
 
-Set `PAYMENT_MODE=live`, `APP_BASE_URL` to your public HTTPS URL, and `PAYMENT_CALLBACK_BASE_URL` to a URL the gateways can reach (use ngrok or cloudflared in development). The STK callback URL is `<PAYMENT_CALLBACK_BASE_URL>/api/payments/callbacks/mpesa/<PAYMENT_CALLBACK_SECRET>` and the B2C result URL is `.../callbacks/mpesa-b2c/<PAYMENT_CALLBACK_SECRET>`. Both are sent with each Daraja request, so you do not register them by hand.
+Set `PAYMENT_MODE=live`, `APP_BASE_URL` to your public HTTPS URL, and `PAYMENT_CALLBACK_BASE_URL` to a URL the gateways can reach (use ngrok or cloudflared in development). The STK callback URL is `<PAYMENT_CALLBACK_BASE_URL>/api/payments/callbacks/stk/<PAYMENT_CALLBACK_SECRET>` and the B2C result URL is `.../callbacks/b2c/<PAYMENT_CALLBACK_SECRET>`. Both are sent with each Daraja request, so you do not register them by hand. The paths avoid the word "mpesa" on purpose: Safaricom rejects callback URLs containing it.
 
 * **M-Pesa (Daraja):** `MPESA_ENV`, `MPESA_CONSUMER_KEY`, `MPESA_CONSUMER_SECRET`, `MPESA_SHORTCODE`, `MPESA_PASSKEY`, `MPESA_TRANSACTION_TYPE` (Paybill or Till; for a Till also set `MPESA_PARTY_B`). Payouts (B2C) additionally need `MPESA_INITIATOR_NAME`, `MPESA_SECURITY_CREDENTIAL`, `MPESA_B2C_SHORTCODE`.
-* **SMS:** `SMS_PROVIDER=africastalking`, `AT_BASE_URL`, `AT_USERNAME`, `AT_API_KEY`, `AT_SENDER_ID`.
+* **SMS:** `SMS_PROVIDER=twilio` with `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` (see `DEPLOYMENT_GUIDE.md`). `vonage` and `africastalking` are also supported.
 * **Email:** `EMAIL_PROVIDER=smtp`, `EMAIL_FROM`, `SMTP_HOST/PORT/SECURE/USER/PASS`.
 * **Cover photos in the cloud:** `STORAGE_DRIVER=s3` with the `S3_*` values (works with AWS S3, Cloudflare R2, Spaces, MinIO).
 * Behind a proxy/load balancer set `TRUST_PROXY=true` and `NODE_ENV=production`.

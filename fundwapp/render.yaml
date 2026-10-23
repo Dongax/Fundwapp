@@ -4,7 +4,7 @@ services:
   - type: web
     name: fundwapp
     runtime: node
-    plan: free               # free = sleeps after 15 min idle. Change to "starter" for real money (see DEPLOY_RENDER_FREE.md)
+    plan: free               # free = sleeps after 15 min idle. Change to "starter" for real money (see DEPLOYMENT_GUIDE.md)
     region: frankfurt
     branch: main
     buildCommand: npm install
@@ -33,7 +33,7 @@ services:
       - { key: MPESA_PASSKEY, sync: false }
       - { key: MPESA_TRANSACTION_TYPE, value: CustomerPayBillOnline }
       # Verification codes. Free setup: codes go by email (SMTP below) and SMS stays on 'console'.
-      # Real SMS: set SMS_PROVIDER=africastalking and add AT_BASE_URL, AT_USERNAME, AT_API_KEY, AT_SENDER_ID.
+      # Real SMS (see DEPLOYMENT_GUIDE.md): set SMS_PROVIDER=twilio and add TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM.
       - { key: SMS_PROVIDER, value: console }
       - { key: EMAIL_PROVIDER, value: smtp }
       - { key: EMAIL_FROM, sync: false }
