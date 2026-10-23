@@ -1,5 +1,7 @@
 # Deploying Fundwapp on Render (Node.js + Turso + M-Pesa)
 
+> On the free plan and without a command line? Use `DEPLOY_RENDER_FREE.md` instead. This guide is for the paid, production-ready setup.
+
 Architecture on Render: one **Web Service** running this app, a **Turso** database (so data survives redeploys), **Africa's Talking** for SMS codes, **Safaricom Daraja** for M-Pesa, and an **S3-compatible bucket** (Cloudflare R2) or a Render Disk for cover photos.
 
 > Render's filesystem is wiped on every deploy and restart. That is why the database must be Turso (not a `file:` SQLite database) and why photos need a bucket or a disk.

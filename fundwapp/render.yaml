@@ -4,7 +4,7 @@ services:
   - type: web
     name: fundwapp
     runtime: node
-    plan: starter            # use "free" only for a demo: it sleeps, loses cron jobs and can miss M-Pesa callbacks
+    plan: free               # free = sleeps after 15 min idle. Change to "starter" for real money (see DEPLOY_RENDER_FREE.md)
     region: frankfurt
     branch: main
     buildCommand: npm install
@@ -12,7 +12,6 @@ services:
     # from ADMIN_* if it does not exist yet, then starts the server.
     startCommand: npm run db:setup && node scripts/create-admin.js --if-missing && npm start
     healthCheckPath: /api/health
-    numInstances: 1          # keep at 1: cron jobs and the live-totals bus run inside the process
     envVars:
       - { key: NODE_VERSION, value: "22" }
       - { key: NODE_ENV, value: production }
@@ -33,11 +32,16 @@ services:
       - { key: MPESA_SHORTCODE, sync: false }
       - { key: MPESA_PASSKEY, sync: false }
       - { key: MPESA_TRANSACTION_TYPE, value: CustomerPayBillOnline }
-      - { key: SMS_PROVIDER, value: africastalking }
-      - { key: AT_BASE_URL, value: "https://api.africastalking.com" }
-      - { key: AT_USERNAME, sync: false }
-      - { key: AT_API_KEY, sync: false }
-      - { key: AT_SENDER_ID, sync: false }
+      # Verification codes. Free setup: codes go by email (SMTP below) and SMS stays on 'console'.
+      # Real SMS: set SMS_PROVIDER=africastalking and add AT_BASE_URL, AT_USERNAME, AT_API_KEY, AT_SENDER_ID.
+      - { key: SMS_PROVIDER, value: console }
+      - { key: EMAIL_PROVIDER, value: smtp }
+      - { key: EMAIL_FROM, sync: false }
+      - { key: SMTP_HOST, sync: false }
+      - { key: SMTP_PORT, value: "587" }
+      - { key: SMTP_SECURE, value: "false" }
+      - { key: SMTP_USER, sync: false }
+      - { key: SMTP_PASS, sync: false }
       - { key: ADMIN_FULL_NAME, sync: false }
       - { key: ADMIN_PHONE, sync: false }
       - { key: ADMIN_PASSWORD, sync: false }

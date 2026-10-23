@@ -74,7 +74,7 @@ export function register({ config, query }) {
   } },
     field('Full name', h('input', { name: 'full_name', autocomplete: 'name', required: true })),
     field('Phone number', h('input', { name: 'phone_number', type: 'tel', autocomplete: 'tel', required: true, placeholder: `e.g. 0712 345 678` }), { hint: 'We send a verification code to this number.' }),
-    field('Email (optional)', h('input', { name: 'email', type: 'email', autocomplete: 'email' })),
+    field('Email (optional)', h('input', { name: 'email', type: 'email', autocomplete: 'email' }), { hint: 'We also send your verification code here.' }),
     field('Password', h('input', { name: 'password', type: 'password', autocomplete: 'new-password', minlength: 8, required: true }), { hint: 'At least 8 characters.' }),
     field('I am here to', select('role', roles.map((r) => ({ value: r, label: roleLabels[r] ?? r })), roles[0])),
     h('button', { class: 'btn btn-primary', type: 'submit' }, 'Create account'));
@@ -98,7 +98,7 @@ export function verify({ query, config }) {
       h('button', { class: 'btn btn-quiet', type: 'button', onClick: async (e) => {
         await busy(e.currentTarget, async () => { const r = await api('/auth/resend-otp', { method: 'POST', auth: false, body: { identifier: id } }); setDev(r.dev_otp); toast('A new code is on its way'); if (r.dev_otp) navigate(`/verify?id=${encodeURIComponent(id)}`); });
       } }, 'Send a new code')));
-  return { title: 'Verify', node: h('div', { class: 'card narrow' }, h('h1', null, 'Verify your phone'), h('p', { class: 'muted' }, 'Enter the code we sent by SMS.'), form) };
+  return { title: 'Verify', node: h('div', { class: 'card narrow' }, h('h1', null, 'Verify your phone'), h('p', { class: 'muted' }, 'Enter the code we sent by SMS or email.'), form) };
 }
 
 export function forgot({ config }) {

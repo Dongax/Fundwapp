@@ -19,7 +19,7 @@ Digital fundraising platform (M-Pesa only) built from the **Fundwapp System Desi
 
 Field names match the ERD exactly. Extra tables support the flows the SDD describes: `payment_attempts` (a payment is pending until the gateway confirms; **a contribution row is only created on confirmation**), `otp_codes`, `refresh_tokens`, `flags`, `reconciliation_runs`, `audit_logs`, `campaign_updates`.
 
-> **Deploying to Render?** Follow `DEPLOY_RENDER.md` (includes `render.yaml`).
+> **Deploying to Render?** Free plan, browser only: `DEPLOY_RENDER_FREE.md`. Paid/production: `DEPLOY_RENDER.md`. Both use `render.yaml`.
 
 ## 1. Run it locally (SQLite file)
 
