@@ -23,15 +23,11 @@ services:
       - { key: DEFAULT_COUNTRY_CALLING_CODE, value: "254" }
       - { key: JWT_ACCESS_SECRET, generateValue: true }
       - { key: PAYMENT_CALLBACK_SECRET, generateValue: true }
-      - { key: PAYMENT_MODE, value: live }
-      - { key: MPESA_ENV, value: sandbox }          # change to production after Safaricom go-live
+      # DEMO MODE: payments are simulated by the built-in sandbox, so no Safaricom credentials are needed.
+      # To switch on real M-Pesa later, see "Part 9" of DEPLOYMENT_GUIDE.md (PAYMENT_MODE=live + MPESA_* values).
+      - { key: PAYMENT_MODE, value: sandbox }
       - { key: DATABASE_URL, sync: false }
       - { key: DATABASE_AUTH_TOKEN, sync: false }
-      - { key: MPESA_CONSUMER_KEY, sync: false }
-      - { key: MPESA_CONSUMER_SECRET, sync: false }
-      - { key: MPESA_SHORTCODE, sync: false }
-      - { key: MPESA_PASSKEY, sync: false }
-      - { key: MPESA_TRANSACTION_TYPE, value: CustomerPayBillOnline }
       # Verification codes. Free setup: codes go by email (SMTP below) and SMS stays on 'console'.
       # Real SMS (see DEPLOYMENT_GUIDE.md): set SMS_PROVIDER=twilio and add TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM.
       - { key: SMS_PROVIDER, value: console }

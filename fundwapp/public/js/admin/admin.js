@@ -46,7 +46,7 @@ function shell(content) {
         label, counts[key] > 0 && h('span', { class: 'count' }, counts[key]))),
       h('a', { href: '/', style: 'color:#cfe0de;padding:.6rem .8rem' }, 'View site'),
       h('button', { onClick: async () => { await logout(); loginView(); } }, 'Sign out')),
-    h('main', { class: 'admin-main' }, content));
+    h('main', { class: 'admin-main' }, config.payment.mode === 'sandbox' && h('div', { class: 'demo-banner', role: 'status', style: 'margin:-2rem -2rem 1.5rem' }, 'Demo mode: payments are simulated. No real money is charged or sent.'), content));
 }
 
 async function go(key) {

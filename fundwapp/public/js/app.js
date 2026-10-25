@@ -38,6 +38,7 @@ function layout(content) {
       link('/register', { class: 'btn btn-primary btn-sm' }, 'Start a fundraiser'),
     ]);
   return [
+    config.payment.mode === 'sandbox' && h('div', { class: 'demo-banner', role: 'status' }, 'Demo mode: payments are simulated. No real money is charged or sent.'),
     h('header', { class: 'site-header' }, h('div', { class: 'wrap' },
       link('/', { class: 'brand' }, h('span', { class: 'brand-mark', 'aria-hidden': 'true' }), config.app.name), nav)),
     h('main', null, h('div', { class: 'wrap' }, content)),

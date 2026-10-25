@@ -195,3 +195,5 @@ body.admin { background: #e9efee; }
   .card { padding: 1.05rem; }
   .dash-row { grid-template-columns: 1fr; }
 }
+
+.demo-banner { background: var(--marigold); color: var(--on-marigold); text-align: center; padding: .45rem 1rem; font-weight: 600; font-size: .92rem; }

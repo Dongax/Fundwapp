@@ -19,7 +19,7 @@ Digital fundraising platform (M-Pesa only) built from the **Fundwapp System Desi
 
 Field names match the ERD exactly. Extra tables support the flows the SDD describes: `payment_attempts` (a payment is pending until the gateway confirms; **a contribution row is only created on confirmation**), `otp_codes`, `refresh_tokens`, `flags`, `reconciliation_runs`, `audit_logs`, `campaign_updates`.
 
-> **Deploying?** Follow `DEPLOYMENT_GUIDE.md`: Render + Turso + Safaricom Daraja, free and browser-only, with go-live steps.
+> **Deploying?** Follow `DEPLOYMENT_GUIDE.md`: Render + Turso, free and browser-only, running in demo mode without M-Pesa. Part 9 covers switching on real M-Pesa later.
 
 ## 1. Run it locally (SQLite file)
 
