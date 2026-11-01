@@ -1,0 +1,35 @@
+{
+  "name": "fundwapp",
+  "version": "1.0.0",
+  "description": "Fundwapp digital fundraising platform - Node.js API + web app + admin portal on Turso/libSQL (SQLite)",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "db:migrate": "node scripts/migrate.js",
+    "db:seed": "node scripts/seed.js",
+    "db:setup": "node scripts/migrate.js && node scripts/seed.js",
+    "admin:create": "node scripts/create-admin.js",
+    "test:smoke": "node scripts/smoke-test.js"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.15.0",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.10.0",
+    "qrcode": "^1.5.4",
+    "zod": "^3.24.0"
+  },
+  "optionalDependencies": {
+    "@aws-sdk/client-s3": "^3.700.0"
+  }
+}
