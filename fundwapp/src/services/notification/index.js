@@ -20,11 +20,11 @@ async function deliver(row, plainBody) {
       "UPDATE notifications SET delivery_status = 'sent', attempts = attempts + 1, provider_message_id = ?, error = NULL, sent_at = ? WHERE id = ?",
       [result.id ?? null, nowIso(), row.id],
     );
-    return true;
+    return { ok: true, simulated: !!result.simulated };
   } catch (err) {
     logger.error(`Notification ${row.id} (${row.trigger_event}/${row.channel}) failed`, err);
     await run("UPDATE notifications SET delivery_status = 'failed', attempts = attempts + 1, error = ? WHERE id = ?", [String(err.message).slice(0, 500), row.id]);
-    return false;
+    return { ok: false, simulated: false };
   }
 }
 
@@ -38,7 +38,7 @@ async function deliver(row, plainBody) {
  * @param {{phone?:string,email?:string}} [opts.recipient] explicit contact (e.g. a contributor without an account)
  * @param {string} [opts.fundraiserId]
  * @param {object} [opts.data]           template variables
- * @param {boolean} [opts.wait]          wait for delivery (used for OTP so failures surface)
+ * @param {boolean} [opts.wait]          wait for delivery and report how many messages were really delivered
  */
 export async function notify({ event, user = null, recipient = {}, fundraiserId = null, data = {}, wait = false }) {
   try {
@@ -66,8 +66,12 @@ export async function notify({ event, user = null, recipient = {}, fundraiserId 
       );
       jobs.push(deliver(row, body));
     }
-    if (wait) await Promise.allSettled(jobs);
-    else Promise.allSettled(jobs).catch(() => {});
+    if (wait) {
+      const results = await Promise.all(jobs);
+      // "delivered" counts only real providers; the console provider just prints to the server log
+      return { sent: jobs.length, delivered: results.filter((r) => r.ok && !r.simulated).length };
+    }
+    Promise.allSettled(jobs).catch(() => {});
     return { sent: jobs.length };
   } catch (err) {
     // Notifications must never break the business flow that triggered them.
@@ -83,7 +87,7 @@ export async function retryFailedNotifications() {
     [config.notifications.maxAttempts, hoursAgoIso(24)],
   );
   let ok = 0;
-  for (const row of rows) if (await deliver(row)) ok += 1;
+  for (const row of rows) if ((await deliver(row)).ok) ok += 1;
   return { retried: rows.length, delivered: ok };
 }
 

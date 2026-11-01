@@ -19,12 +19,7 @@ function loginView() {
     e.preventDefault();
     await busy(form.querySelector('button[type=submit]'), async () => {
       try {
-        let r = await api('/auth/login', { method: 'POST', auth: false, body: formData(form) });
-        if (r.two_factor_required) {
-          const code = prompt(`Enter the sign-in code we sent you${r.dev_otp ? ` (dev code: ${r.dev_otp})` : ''}`);
-          if (!code) return;
-          r = await api('/auth/login/2fa', { method: 'POST', auth: false, body: { challenge_token: r.challenge_token, code } });
-        }
+        const r = await api('/auth/login', { method: 'POST', auth: false, body: formData(form) });
         if (r.user.role !== 'admin') { toast('This area is for administrators.', 'error'); return; }
         await startSession(r);
         start();
@@ -172,11 +167,12 @@ const sections = {
     filters: [{ name: 'role', label: 'Any role', type: 'select', options: ['organizer', 'contributor', 'admin'] }, { name: 'status', label: 'Any status', type: 'select', options: ['active', 'suspended'] }, { name: 'search', label: 'Search name, phone or email' }],
     columns: () => [
       { label: 'Name', render: (u) => h('div', null, h('b', null, u.full_name), h('div', { class: 'muted' }, `${u.phone_number}${u.email ? ` · ${u.email}` : ''}`)) },
-      { label: 'Role', render: (u) => u.role }, { label: 'Verified', render: (u) => (u.verified ? 'Yes' : 'No') },
+      { label: 'Role', render: (u) => u.role },
       { label: 'Fundraisers', align: 'right', render: (u) => u.fundraisers_count }, { label: 'Status', render: (u) => statusBadge(u.status) },
       { label: 'Joined', render: (u) => date(u.created_at) },
       { label: '', render: (u) => u.id !== session.user.id && h('div', { class: 'actions' },
         action(u.status === 'active' ? 'Suspend' : 'Reactivate', async () => { await api(`/admin/users/${u.id}`, { method: 'PATCH', body: { status: u.status === 'active' ? 'suspended' : 'active' } }); repaint(); }),
+        action('Reset password', async () => { if (!confirm(`Create a new temporary password for ${u.full_name}? They will be signed out.`)) return; const r = await api(`/admin/users/${u.id}/reset-password`, { method: 'POST' }); prompt(`Temporary password for ${u.full_name}. Copy it now and give it to them; it is shown only once.`, r.temporary_password); }),
         u.role !== 'admin' && action('Make admin', async () => { if (confirm(`Give ${u.full_name} full admin access?`)) { await api(`/admin/users/${u.id}`, { method: 'PATCH', body: { role: 'admin' } }); repaint(); } })) },
     ],
   }),

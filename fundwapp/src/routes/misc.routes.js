@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { requireAuth, requireVerified } from '../middleware/auth.js';
+import { requireAuth } from '../middleware/auth.js';
 import { imageUpload } from '../middleware/upload.js';
 import { saveImage } from '../services/storage/index.js';
 import { badRequest } from '../utils/errors.js';
@@ -15,7 +15,7 @@ router.get('/health', async (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
-router.post('/uploads/images', requireAuth, requireVerified, imageUpload.single('file'), async (req, res) => {
+router.post('/uploads/images', requireAuth, imageUpload.single('file'), async (req, res) => {
   if (!req.file) throw badRequest('Choose an image to upload', 'NO_FILE');
   const { url } = await saveImage(req.file.buffer, 'covers');
   res.status(201).json({ url });

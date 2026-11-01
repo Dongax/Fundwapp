@@ -62,7 +62,7 @@ export default async function home({ config }) {
       h('section', { class: 'hero' },
         h('div', null,
           h('h1', null, 'Pull together for the people who matter to you.'),
-          h('p', { class: 'lead' }, 'Start a fundraiser in minutes, share one link or QR code, and collect contributions by M-Pesa, Airtel Money or card. Every shilling is tracked.'),
+          h('p', { class: 'lead' }, 'Start a fundraiser in minutes, share one link or QR code, and collect contributions by M-Pesa. Every shilling is tracked.'),
           h('div', { class: 'actions' },
             link(session.user ? '/dashboard/new' : '/register', { class: 'btn btn-primary' }, 'Start a fundraiser'),
             h('a', { class: 'btn btn-quiet', href: '#browse' }, 'Browse fundraisers'))),

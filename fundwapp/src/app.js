@@ -44,7 +44,8 @@ export function createApp() {
   app.use('/api', notFoundHandler);
 
   app.use('/uploads', express.static(uploadRoot, { maxAge: '7d', immutable: true }));
-  app.use(express.static(publicDir, { index: false, maxAge: config.isProd ? '1h' : 0 }));
+  // No long-lived caching: browsers revalidate on each load, so a new deploy shows up immediately.
+app.use(express.static(publicDir, { index: false, maxAge: 0 }));
 
   // Single-page apps: the web app lives at "/", the admin portal at "/admin".
   app.use(async (req, res, next) => {

@@ -9,7 +9,6 @@ const routes = [
   [/^\/$/, () => import('./views/home.js')],
   [/^\/login$/, () => import('./views/auth.js').then((m) => ({ default: m.login }))],
   [/^\/register$/, () => import('./views/auth.js').then((m) => ({ default: m.register }))],
-  [/^\/verify$/, () => import('./views/auth.js').then((m) => ({ default: m.verify }))],
   [/^\/forgot$/, () => import('./views/auth.js').then((m) => ({ default: m.forgot }))],
   [/^\/dashboard$/, () => import('./views/dashboard.js')],
   [/^\/dashboard\/new$/, () => import('./views/campaign-form.js')],

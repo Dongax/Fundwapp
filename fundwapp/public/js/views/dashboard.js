@@ -24,7 +24,6 @@ export default async function dashboard({ config }) {
   return { title: 'My fundraisers', node: [
     h('div', { class: 'actions', style: 'justify-content:space-between;margin-bottom:1.25rem' },
       h('h1', { style: 'margin:0' }, 'My fundraisers'), link('/dashboard/new', { class: 'btn btn-primary' }, 'New fundraiser')),
-    !user.verified && h('div', { class: 'alert alert-warn' }, 'Verify your phone number to create fundraisers.'),
     items.length > 0 && h('div', { class: 'stats' },
       h('div', { class: 'card stat' }, h('b', null, items.length), h('span', null, 'fundraisers')),
       h('div', { class: 'card stat' }, h('b', null, money(String(raised))), h('span', null, 'raised in total')),

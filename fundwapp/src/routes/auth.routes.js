@@ -22,36 +22,20 @@ function sendSession(res, session, status = 200) {
 const password = z.string().min(8, 'Use at least 8 characters').max(128);
 const phone = z.string().min(7, 'Enter your phone number').max(20);
 const identifier = z.string().min(3).max(120);
-const code = z.string().regex(/^\d+$/, 'Enter the numeric code').min(4).max(10);
 
 router.post('/register', async (req, res) => {
   const body = parse(z.object({
     full_name: z.string().trim().min(2).max(100), phone_number: phone, email: z.string().email().max(160).optional().or(z.literal('')),
     password, role: z.string().min(1),
   }), req.body);
-  res.status(201).json(await auth.register({ ...body, email: body.email || null }, clientContext(req)));
-});
-
-router.post('/resend-otp', async (req, res) => {
-  const { identifier: id } = parse(z.object({ identifier }), req.body);
-  res.json(await auth.resendVerification(id));
-});
-
-router.post('/verify', async (req, res) => {
-  const body = parse(z.object({ identifier, code }), req.body);
-  sendSession(res, await auth.verifyContact(body, clientContext(req)));
+  const result = await auth.register({ ...body, email: body.email || null }, clientContext(req));
+  if (result.access_token) return sendSession(res, result, 201); // simple sign-up: signed in straight away
+  return res.status(201).json(result);
 });
 
 router.post('/login', async (req, res) => {
   const body = parse(z.object({ identifier, password: z.string().min(1) }), req.body);
-  const result = await auth.login(body, clientContext(req));
-  if (result.two_factor_required) return res.json(result);
-  return sendSession(res, result);
-});
-
-router.post('/login/2fa', async (req, res) => {
-  const body = parse(z.object({ challenge_token: z.string().min(10), code }), req.body);
-  sendSession(res, await auth.completeTwoFactor(body, clientContext(req)));
+  sendSession(res, await auth.login(body, clientContext(req)));
 });
 
 // Web clients rely on the httpOnly cookie; mobile apps may send { refresh_token } in the body instead.
@@ -63,17 +47,6 @@ router.post('/refresh', async (req, res) => {
 router.post('/logout', async (req, res) => {
   await auth.logout(req.body?.refresh_token || readCookie(req, COOKIE));
   res.clearCookie(COOKIE, { path: '/api/auth' });
-  res.json({ ok: true });
-});
-
-router.post('/forgot-password', async (req, res) => {
-  const { identifier: id } = parse(z.object({ identifier }), req.body);
-  res.json(await auth.forgotPassword(id));
-});
-
-router.post('/reset-password', async (req, res) => {
-  const body = parse(z.object({ identifier, code, new_password: password }), req.body);
-  await auth.resetPassword(body);
   res.json({ ok: true });
 });
 
@@ -89,11 +62,6 @@ router.post('/change-password', requireAuth, async (req, res) => {
   await auth.changePassword(req.user, body);
   res.clearCookie(COOKIE, { path: '/api/auth' });
   res.json({ ok: true });
-});
-
-router.post('/two-factor', requireAuth, async (req, res) => {
-  const body = parse(z.object({ enabled: z.boolean(), password: z.string().min(1) }), req.body);
-  res.json({ user: await auth.setTwoFactor(req.user, body) });
 });
 
 router.post('/become-organizer', requireAuth, async (req, res) => {

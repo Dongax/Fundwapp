@@ -39,6 +39,8 @@ router.patch('/users/:id', async (req, res) => {
   res.json({ user: await admin.updateUser(req.user, req.params.id, body, clientContext(req)) });
 });
 
+router.post('/users/:id/reset-password', async (req, res) => res.json(await admin.resetUserPassword(req.user, req.params.id, clientContext(req))));
+
 router.get('/transactions', async (req, res) => {
   const p = pageParams(req);
   res.json(listResponse(await admin.listTransactions({ ...filter(req, ['status', 'method', 'search']), ...p }), p));

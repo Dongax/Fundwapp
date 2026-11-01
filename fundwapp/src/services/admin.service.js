@@ -1,3 +1,6 @@
+import bcrypt from 'bcryptjs';
+import config from '../config/index.js';
+import { randomCode } from '../utils/ids.js';
 import { all, one, run } from '../db/client.js';
 import { fromMinor } from '../utils/money.js';
 import { nowIso, hoursAgoIso } from '../utils/time.js';
@@ -78,6 +81,18 @@ export async function updateUser(admin, id, { role, status }, ctx = {}) {
   if (nextStatus === 'suspended') await run('UPDATE refresh_tokens SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL', [nowIso(), id]);
   await audit({ actorId: admin.id, action: 'user.updated', entityType: 'user', entityId: id, metadata: { role: nextRole, status: nextStatus }, ip: ctx.ip });
   return publicUser(await one('SELECT * FROM users WHERE id = ?', [id]));
+}
+
+/** Admin-issued temporary password (replaces the emailed/SMS reset code). Shown once; all sessions are signed out. */
+export async function resetUserPassword(admin, id, ctx = {}) {
+  const user = await one('SELECT * FROM users WHERE id = ?', [id]);
+  if (!user) throw notFound('User not found');
+  if (id === admin.id) throw conflict('Use Account > Password to change your own password', 'SELF_CHANGE');
+  const temporary = randomCode(12);
+  await run('UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?', [await bcrypt.hash(temporary, config.auth.bcryptRounds), nowIso(), id]);
+  await run('UPDATE refresh_tokens SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL', [nowIso(), id]);
+  await audit({ actorId: admin.id, action: 'user.password_reset_by_admin', entityType: 'user', entityId: id, ip: ctx.ip });
+  return { temporary_password: temporary, full_name: user.full_name };
 }
 
 /** Transaction monitor: every payment attempt joined to its contribution (if any). */

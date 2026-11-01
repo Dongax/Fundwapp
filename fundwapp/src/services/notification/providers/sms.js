@@ -5,7 +5,7 @@ import { logger } from '../../../utils/logger.js';
 const consoleProvider = {
   async send({ to, body }) {
     logger.info(`[SMS to ${to}] ${body}`);
-    return { id: `console-${Date.now()}` };
+    return { id: `console-${Date.now()}`, simulated: true };
   },
 };
 

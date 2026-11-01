@@ -28,16 +28,10 @@ services:
       - { key: PAYMENT_MODE, value: sandbox }
       - { key: DATABASE_URL, sync: false }
       - { key: DATABASE_AUTH_TOKEN, sync: false }
-      # Verification codes. Free setup: codes go by email (SMTP below) and SMS stays on 'console'.
-      # Real SMS (see DEPLOYMENT_GUIDE.md): set SMS_PROVIDER=twilio and add TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM.
+      # Sign-up and login need no codes at all. Email/SMS are only used for optional notifications. Leave both on 'console' to start; see DEPLOYMENT_GUIDE.md Part 8 to send real emails.
+      # (Render's free plan blocks SMTP ports, so use EMAIL_PROVIDER=gmail for free real emails.)
       - { key: SMS_PROVIDER, value: console }
-      - { key: EMAIL_PROVIDER, value: smtp }
-      - { key: EMAIL_FROM, sync: false }
-      - { key: SMTP_HOST, sync: false }
-      - { key: SMTP_PORT, value: "587" }
-      - { key: SMTP_SECURE, value: "false" }
-      - { key: SMTP_USER, sync: false }
-      - { key: SMTP_PASS, sync: false }
+      - { key: EMAIL_PROVIDER, value: console }
       - { key: ADMIN_FULL_NAME, sync: false }
       - { key: ADMIN_PHONE, sync: false }
       - { key: ADMIN_PASSWORD, sync: false }

@@ -1,19 +1,26 @@
-# Fundwapp Deployment Guide (live now, without M-Pesa)
+# Fundwapp Deployment Guide (live now, simple sign-up, no M-Pesa needed)
 
-Deploy Fundwapp today on **Render + Turso**, entirely in your web browser, with **no Safaricom account and no M-Pesa credentials**. Payments run on Fundwapp's built-in **demo simulator**, and you can switch real M-Pesa on later (Part 9) without redoing anything.
+Deploy Fundwapp today on **Render + Turso**, entirely in your web browser, with:
+* **Simple sign-up and login**: a person enters their name, phone number and a password and is signed in immediately. **No verification codes at all.**
+* **No M-Pesa needed**: payments run on Fundwapp's built-in demo simulator. You can switch real M-Pesa on later (Part 9).
 
-**What you will have at the end:** a public `https://….onrender.com` website where people register, organizers create fundraisers, an admin approves them, contributors "pay" and totals update live, and organizers request withdrawals that the admin approves. Everything is stored in a Turso database. A yellow banner on every page says **Demo mode: payments are simulated**.
+**What you will have at the end:** a public `https://….onrender.com` website where people sign up, organizers create fundraisers, an admin approves them, contributors "pay" and totals update live, and organizers request withdrawals that the admin approves. Everything is stored in a Turso database. A yellow banner on every page says **Demo mode: payments are simulated**.
 
 ---
 
 ## Part 0. Read this first
 
+### What "simple sign-up" means
+* Sign-up asks for **full name, phone number, password** (email is optional) and signs the person in at once.
+* There are **no verification codes anywhere**: no SMS code, no email code, no two-step sign-in, no "verify your phone" screen.
+* The phone number is the person's **username** for signing in.
+* **There is no "forgot password by code".** If someone forgets their password, the administrator creates a temporary one for them (**Admin > Users > Reset password**, Part 7).
+
 ### What "without M-Pesa" means
 | Works fully | Simulated |
 |---|---|
-| Sign-up, email verification codes, login, 2-step sign-in | The M-Pesa payment itself: the payment screen shows **Approve / Decline / Cancel** buttons instead of a phone prompt |
-| Fundraisers, admin approval, public pages, QR codes, live totals, updates | Withdrawal payouts: when the admin approves, the payout is marked paid with a fake `SBX-…` reference and **no money moves** |
-| Contributions, receipts, flags, reconciliation, admin portal, audit log | |
+| Sign-up, login, fundraisers, admin approval, public pages, QR codes, live totals, updates | The M-Pesa payment itself: the payment screen shows **Approve / Decline / Cancel** buttons instead of a phone prompt |
+| Contributions, receipts, flags, reconciliation, admin portal, audit log | Withdrawal payouts: when the admin approves, the payout is marked paid with a fake `SBX-…` reference and **no money moves** |
 
 **No real money is collected or sent in this mode.** Anyone who opens a payment screen can press Approve, so do not use this setup to collect real donations. It is perfect for demos, classes, user testing and a staging site.
 
@@ -23,10 +30,9 @@ Deploy Fundwapp today on **Render + Turso**, entirely in your web browser, with 
 | Render (Free web service) | Hosts the app | Free |
 | Turso (Starter plan) | Database | Free, no card |
 | GitHub (private repo) | Holds the code Render deploys | Free |
-| Brevo | Emails the verification codes | Free (300 emails a day) |
 | UptimeRobot | Keeps the free app awake | Free |
 
-Free Render limits: the app **sleeps after about 15 minutes with no visitors** (the next visit takes 30-60 seconds; Part 7 fixes this), and its disk is **erased on every restart**, so **do not use cover photos** (your data is safe because it lives in Turso).
+Free Render limits: the app **sleeps after about 15 minutes with no visitors** (the next visit takes 30-60 seconds; Part 6 fixes this), and its disk is **erased on every restart**, so **do not use cover photos** (your data is safe because it lives in Turso).
 
 ### Prepare a notes file
 Create a text file `fundwapp-values.txt` on your computer. You will paste values into it as you collect them. Keep it private; never upload it.
@@ -46,17 +52,7 @@ Create a text file `fundwapp-values.txt` on your computer. You will paste values
    * Use the token made **inside the database page**, not a "platform API token" from account settings.
 8. You do **not** create tables. Fundwapp builds them automatically the first time it starts.
 
-## Part 2. Free email for verification codes (Brevo)
-New users must enter a code to verify their account. The free setup sends it **by email**, so users must type their email when registering.
-1. Sign up at **https://www.brevo.com** and confirm your email.
-2. Top-right account menu > **SMTP & API** > **SMTP** tab > **Generate a new SMTP key**. Name it `fundwapp`, copy the key and save it as **SMTP_PASS**.
-3. On that page copy your **SMTP login** (usually your Brevo email) and save it as **SMTP_USER**.
-4. Go to **Senders, Domains & Dedicated IPs > Senders > Add a sender**, add the address the codes should come from and confirm it from Brevo's email. Save it as **EMAIL_FROM** written like `Fundwapp <that-address@example.com>`.
-5. Fixed value: **SMTP_HOST** = `smtp-relay.brevo.com`.
-
-*Gmail instead?* Turn on 2-Step Verification, make an App Password at https://myaccount.google.com/apppasswords, then use `SMTP_HOST=smtp.gmail.com`, `SMTP_USER=<your gmail>`, `SMTP_PASS=<the app password>`, `EMAIL_FROM=Fundwapp <your gmail>`.
-
-## Part 3. Put the code on GitHub
+## Part 2. Put the code on GitHub
 1. Unzip `Fundwapp.zip`. You get a folder `fundwapp`.
 2. Sign in at **https://github.com**, click **+** > **New repository**. Name `fundwapp`, choose **Private**, leave the README options unticked, click **Create repository**.
 3. On the empty repository page click **uploading an existing file**.
@@ -64,27 +60,27 @@ New users must enter a code to verify their account. The free setup sends it **b
    * `.gitignore` and `.env.example` are hidden files (Mac: press Cmd+Shift+. in Finder). They are optional.
    * Never upload a file named `.env`.
 5. When the upload finishes click **Commit changes**.
-6. Check the repository's top level shows `src`, `public`, `db`, `scripts`, `package.json`, `render.yaml`. If they sit inside an extra `fundwapp` folder, delete the repository and upload again from inside the folder.
+6. Check the repository's top level shows `src`, `public`, `db`, `scripts`, `package.json`, `render.yaml`. If they sit inside an extra `fundwapp` folder, either delete the repository and upload again from inside the folder, or set **Root Directory** in Render (see Troubleshooting).
 
-## Part 4. Deploy on Render (Free plan)
+**Already deployed an earlier version?** Upload the new files the same way (same-named files are replaced) and commit. Render redeploys by itself. Your existing database and users are kept. The update removes the code system from the database automatically, and anyone who was stuck waiting for a code can now sign in with their password.
+
+**After the deploy, refresh the page with Ctrl+Shift+R** (Cmd+Shift+R on a Mac) so your browser loads the new screens.
+
+## Part 3. Deploy on Render (Free plan)
 1. Go to **https://render.com** and sign up with **Sign in with GitHub**.
 2. Click **New +** > **Blueprint**.
 3. Connect your GitHub account if asked, choose the `fundwapp` repository, click **Connect**.
-4. Render reads `render.yaml` and shows one service on the **Free** plan. Fill in the empty values from your notes (there are no M-Pesa values to enter):
+4. Render reads `render.yaml` and shows one service on the **Free** plan. Fill in the empty values from your notes. Only five are needed:
 
    | Setting | What to enter |
    |---|---|
    | `DATABASE_URL` | the `libsql://…` URL from Part 1 |
    | `DATABASE_AUTH_TOKEN` | the Turso token from Part 1 |
    | `ADMIN_FULL_NAME` | your name |
-   | `ADMIN_PHONE` | your phone, e.g. `0712345678` |
+   | `ADMIN_PHONE` | your phone, e.g. `0712345678` (this is your admin username) |
    | `ADMIN_PASSWORD` | a strong password, 8+ characters (your admin login) |
-   | `EMAIL_FROM` | from Part 2 |
-   | `SMTP_HOST` | `smtp-relay.brevo.com` |
-   | `SMTP_USER` | from Part 2 |
-   | `SMTP_PASS` | from Part 2 |
 
-   Render creates the two secrets (`JWT_ACCESS_SECRET`, `PAYMENT_CALLBACK_SECRET`) itself. The blueprint already sets `PAYMENT_MODE=sandbox`, `NODE_ENV=production`, `TRUST_PROXY=true`, `APP_TIMEZONE=Africa/Nairobi`, `CURRENCY_CODE=KES`, `SMS_PROVIDER=console` and `EMAIL_PROVIDER=smtp`.
+   Render creates the two secrets (`JWT_ACCESS_SECRET`, `PAYMENT_CALLBACK_SECRET`) itself. The blueprint already sets `PAYMENT_MODE=sandbox`, `NODE_ENV=production`, `TRUST_PROXY=true`, `APP_TIMEZONE=Africa/Nairobi`, `CURRENCY_CODE=KES`, `SMS_PROVIDER=console` and `EMAIL_PROVIDER=console`. No email or SMS accounts are needed.
 5. Click **Apply** (or **Deploy Blueprint**). Render may ask for a payment card to verify your account; free services are not charged.
 6. Open the service and watch **Logs** (3-6 minutes). Success looks like:
    * `Applied 2 migration(s)`
@@ -93,43 +89,100 @@ New users must enter a code to verify their account. The free setup sends it **b
    * `Fundwapp listening on https://fundwapp-xxxx.onrender.com`
 7. Your public address is at the top of the service page. You do **not** need `APP_BASE_URL`; the app uses this address automatically.
 
-*Creating the service by hand instead of a Blueprint:* **New + > Web Service**, pick the repository, **Language** `Node`, **Build Command** `npm install`, **Start Command** `npm run db:setup && node scripts/create-admin.js --if-missing && npm start`, **Instance Type** `Free`, **Health Check Path** `/api/health`, and add under **Environment**: all values in the table above plus `NODE_VERSION=22`, `NODE_ENV=production`, `TRUST_PROXY=true`, `APP_TIMEZONE=Africa/Nairobi`, `CURRENCY_CODE=KES`, `DEFAULT_COUNTRY_CALLING_CODE=254`, `PAYMENT_MODE=sandbox`, `SMS_PROVIDER=console`, `EMAIL_PROVIDER=smtp`, `SMTP_PORT=587`, and **Generate** for `JWT_ACCESS_SECRET` and `PAYMENT_CALLBACK_SECRET`.
+### 3B. Creating the service by hand (if you did not use a Blueprint)
+Use this if you chose **New + > Web Service**. Nothing works until **every** variable below exists, because the app refuses to start without them (the log says `Missing required environment variables: …`).
 
-## Part 5. First checks
+**Settings tab**
+| Field | Value |
+|---|---|
+| Language | `Node` |
+| Branch | `main` |
+| Root Directory | leave **empty** if `package.json` is at the top of your repo; otherwise the folder name, e.g. `fundwapp` |
+| Build Command | `npm install` |
+| Start Command | `npm run db:setup && node scripts/create-admin.js --if-missing && npm start` |
+| Instance Type | `Free` |
+| Health Check Path | `/api/health` |
+
+**Environment tab > Add Environment Variable.** Add each row (Key on the left, Value on the right), then click **Save changes** once at the end:
+| Key | Value |
+|---|---|
+| `NODE_VERSION` | `22` |
+| `NODE_ENV` | `production` |
+| `TRUST_PROXY` | `true` |
+| `APP_TIMEZONE` | `Africa/Nairobi` |
+| `CURRENCY_CODE` | `KES` |
+| `CURRENCY_MINOR_UNITS` | `2` |
+| `LOCALE` | `en-KE` |
+| `DEFAULT_COUNTRY_CALLING_CODE` | `254` |
+| `PAYMENT_MODE` | `sandbox` |
+| `SMS_PROVIDER` | `console` |
+| `EMAIL_PROVIDER` | `console` |
+| `DATABASE_URL` | your `libsql://…` URL from Part 1 |
+| `DATABASE_AUTH_TOKEN` | your Turso token from Part 1 |
+| `ADMIN_FULL_NAME` | your name |
+| `ADMIN_PHONE` | your phone, e.g. `0712345678` |
+| `ADMIN_PASSWORD` | a strong password, 8+ characters |
+| `JWT_ACCESS_SECRET` | a secret of **32 or more characters** (see below) |
+| `PAYMENT_CALLBACK_SECRET` | a secret of **20 or more characters** (see below) |
+
+**The two secrets.** In the Value box click **Generate** if Render shows that button. If not, make your own: use your browser's or phone's password generator ("suggest strong password") with **40 characters**, letters and numbers only, and paste it. Use a *different* value for each secret. Keep both in your notes file; never share them. You do **not** need to set `APP_BASE_URL`; Render provides your address automatically.
+
+After saving, Render redeploys on its own (or click **Manual Deploy > Deploy latest commit**).
+
+## Part 4. First checks
 1. Visit `https://<your-site>/api/health`. Expect `{"status":"ok", …}`.
 2. Visit `https://<your-site>/admin` and sign in with `ADMIN_PHONE` and `ADMIN_PASSWORD`. You should see the yellow demo banner.
 3. In Render > your service > **Environment**, **delete `ADMIN_PASSWORD`**. The admin already exists, so it is no longer needed.
 4. In Turso, open your database > **Edit Data**. You should see tables such as `users`, `fundraisers`, `contributions`.
 
-If the site does not start, read the red lines in the Render **Logs** and use the Troubleshooting table at the end.
+## Part 5. Walk through the whole system (your demo script)
+Use a normal browser window for the organizer and a private window for the admin, or sign out between roles.
 
-## Part 6. Walk through the whole system (your demo script)
-Do this once to confirm everything works. Use a normal browser window for the organizer and a private window for the admin, or sign out between roles.
-
-1. **Register an organizer.** On the home page click **Start a fundraiser** > fill the form, **choose "I want to start fundraisers"**, and **type an email**. A verification code arrives by email (check spam). Enter it. You are signed in.
+1. **Sign up as an organizer.** Home page > **Start a fundraiser** > enter name, phone number and password, choose **"I want to start fundraisers"** > **Create account**. You are signed in straight away.
 2. **Create a fundraiser.** Dashboard > **New fundraiser**: title, category, story (30+ characters), goal (at least 1,000), start today, end in 30 days, **no cover photo**. It is created as **Pending**.
-3. **Approve it as admin.** Open `/admin` > **Fundraisers** > **Approve**. The organizer receives an email.
-4. **Contribute.** Open the fundraiser's public page (Dashboard > fundraiser > **Open public page**, or the share link). Enter an amount (whole shillings, M-Pesa style), a name and any phone number, choose **M-Pesa**, press **Continue to payment**.
+3. **Approve it as admin.** Open `/admin` > **Fundraisers** > **Approve**.
+4. **Contribute.** Open the fundraiser's public page (Dashboard > fundraiser > **Open public page**, or the share link). Enter a whole-shilling amount, a name and any phone number, choose **M-Pesa**, press **Continue to payment**.
 5. **Simulate the phone.** The yellow box offers **Approve / Decline / Cancel**.
-   * Press **Approve**: the page says "Thank you", and the total, progress band and supporter list update within seconds, even on a second open browser tab.
-   * Press **Decline** on another attempt: it fails and **no contribution is recorded**.
-6. **Check the admin view.** `/admin` > **Transactions** shows both attempts (one succeeded, one failed). **Overview** shows totals.
+   * **Approve**: the page says "Thank you", and the total, progress band and supporter list update within seconds (also on a second open tab).
+   * **Decline** on another attempt: it fails and **no contribution is recorded**.
+6. **Check the admin view.** `/admin` > **Transactions** shows both attempts. **Overview** shows totals.
 7. **Withdraw.** As the organizer open the fundraiser > **Payouts** > request an amount up to the available balance. As admin go to **Withdrawals** > **Approve**. The row becomes **completed** with an `SBX-…` reference (simulated, no money moves).
 8. **Share.** The fundraiser page has a copyable link, a WhatsApp button and a QR code.
 
-## Part 7. Keep the free app awake (UptimeRobot)
+## Part 6. Keep the free app awake (UptimeRobot)
 1. Sign up at **https://uptimerobot.com** (free).
 2. **Add New Monitor**: type **HTTP(s)**, name `Fundwapp`, URL `https://<your-site>/api/health`, interval **5 minutes**. Save.
 3. The app now stays awake and its background jobs keep running. A free Render account has 750 running hours a month, enough for one service all month.
 
-## Part 8. Changing things later
-* **Change the code:** open a file in your GitHub repo, click the pencil icon, edit, **Commit changes**. Render redeploys by itself.
+## Part 7. Running it day to day
+* **Someone forgot their password:** `/admin` > **Users** > search their phone > **Reset password** > confirm. A box shows a **temporary password** (copy it now; it is shown only once). Give it to the person privately. They sign in with it and change it under **Account > Password**. The reset signs them out everywhere.
+* **Add another admin:** the person signs up normally, then `/admin` > **Users** > **Make admin**.
+* **Suspend someone:** `/admin` > **Users** > **Suspend**.
 * **Change rules without code:** `/admin` > **Settings** (approval required, minimum goal, withdrawal minimum, platform fee, flag limits, quick-pick amounts, categories).
-* **Add another admin:** register the person, then `/admin` > **Users** > **Make admin**.
-* **Backups:** in Turso, open the database and use its export/backup option, or ask Turso support for point-in-time recovery on paid plans.
+* **Change the code:** open a file in your GitHub repo, click the pencil icon, edit, **Commit changes**. Render redeploys by itself.
+
+## Part 8. Optional: real email notifications (Gmail)
+Not needed for sign-up or login. Do this only if you want organizers and contributors to receive emails (fundraiser approved, contribution received, receipts, withdrawal updates).
+
+> Render's **free** plan blocks the usual email (SMTP) ports (25, 465, 587), so Fundwapp sends through the **Gmail API over HTTPS**.
+
+**A. Google Cloud project.** At **https://console.cloud.google.com** (signed in with the Gmail that will send) create a project `fundwapp-mail`, then **APIs & Services > Library > Gmail API > Enable**.
+**B. Consent screen.** **OAuth consent screen** (or **Google Auth Platform**): app name `Fundwapp`, your Gmail as support and contact email, audience **External**. Add the scope `.../auth/gmail.send`. In **Audience** click **Publish app** and confirm (in Testing mode the token dies after 7 days). If you cannot publish, add your Gmail under **Test users**.
+**C. OAuth client.** **Credentials > Create credentials > OAuth client ID > Web application**, name `playground`, **Authorized redirect URI** `https://developers.google.com/oauthplayground`. Copy the **Client ID** and **Client secret**.
+**D. Refresh token.** Open **https://developers.google.com/oauthplayground**, click the **gear icon**, tick **Use your own OAuth credentials**, paste the Client ID and secret. Paste scope `https://www.googleapis.com/auth/gmail.send`, click **Authorize APIs**, choose your Gmail (if you see "Access blocked … has not completed the Google verification process", publish the app or add yourself as a test user, then retry; if you see "Google hasn't verified this app", click **Advanced > Go to Fundwapp (unsafe)** and Allow). Click **Exchange authorization code for tokens** and copy the **Refresh token** (starts with `1//`).
+**E. Render > Environment**, set:
+| Key | Value |
+|---|---|
+| `EMAIL_PROVIDER` | `gmail` |
+| `GMAIL_USER` | your Gmail address |
+| `EMAIL_FROM` | `Fundwapp <your Gmail address>` |
+| `GMAIL_CLIENT_ID` | from step C |
+| `GMAIL_CLIENT_SECRET` | from step C |
+| `GMAIL_REFRESH_TOKEN` | from step D |
+Save. Emails go to people who typed an email at sign-up. If one fails, the Render Logs show `Notification … failed Error: …`. `invalid_grant` means the token expired (publish the app and repeat step D); `invalid_client` means a wrong Client ID/secret; `insufficient authentication scopes` means the token was made without `gmail.send`.
 
 ## Part 9. Later: switch on real M-Pesa (optional)
-You do this only when you are ready. Nothing else changes.
+Nothing else changes when you do this.
 
 ### 9A. Safaricom Daraja sandbox (free testing with Safaricom's test environment)
 1. Sign up at **https://developer.safaricom.co.ke**, confirm your email and log in.
@@ -153,7 +206,7 @@ You do this only when you are ready. Nothing else changes.
 ### 9B. Real money (production)
 Real money requires things only Safaricom can provide and is **not free**:
 1. A **Paybill or Till** registered to your business or organization (from Safaricom or an M-Pesa agent/shop).
-2. **Daraja Go Live**: in the Daraja portal use the **Go Live** option and follow the wizard. Safaricom then issues your production passkey and enables production for your app (the portal's Support page lists the current contact).
+2. **Daraja Go Live**: in the Daraja portal use the **Go Live** option and follow the wizard. Safaricom then issues your production passkey and enables production for your app.
 3. In Render > **Environment** set:
    | Key | Value |
    |---|---|
@@ -173,24 +226,19 @@ Real money requires things only Safaricom can provide and is **not free**:
    Until then, when the admin approves a withdrawal the payout shows `failed` with "M-Pesa B2C is not configured". Send the money yourself from your M-Pesa app to the number on the row, then click **Mark paid** and enter the receipt code.
 6. Make a real KES 10 contribution, confirm it in **Admin > Transactions**, and check your M-Pesa balance.
 
-## Part 10. Optional: SMS codes instead of email (Twilio, not free after trial)
-1. Sign up at **https://www.twilio.com/try-twilio**, verify your email and your Kenyan phone.
-2. On the Console home page copy the **Account SID** (starts `AC`) and **Auth Token**; click **Get a trial phone number** and copy it as `+1XXXXXXXXXX`.
-3. **Messaging > Settings > Geo permissions**: tick **Kenya**, save.
-4. Trial accounts can text only verified numbers: **Phone Numbers > Manage > Verified Caller IDs > Add a new Caller ID**.
-5. In Render > **Environment** set `SMS_PROVIDER=twilio`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM`. Save and wait for the redeploy.
-6. Errors: `21608` number not verified (trial), `21408` Kenya not enabled, `20003` wrong SID or token. Vonage also works (`SMS_PROVIDER=vonage`, `VONAGE_API_KEY`, `VONAGE_API_SECRET`, `VONAGE_FROM`).
-
 ---
 
 ## Troubleshooting
 | Symptom | Cause and fix |
 |---|---|
-| Deploy fails with `Missing required environment variable …` | Add that variable in Render > Environment. |
+| Build fails: `npm error enoent Could not read package.json … /opt/render/project/src/package.json` | Render cannot see `package.json` at the top of your repository. Open the repo on GitHub: if the top level shows a single folder (for example `fundwapp`) instead of `package.json`, go to Render > your service > **Settings > Build & Deploy > Root Directory**, type that folder's name, **Save Changes**, then **Manual Deploy > Clear build cache & deploy**. If `package.json` is missing, upload it (**Add file > Upload files**). Do not upload the `.zip` itself. |
+| Deploy fails with `Missing required environment variables: …` | The log lists **every** variable that is missing. Add them all in Render > your service > **Environment** (the full table is in Part 3B), click **Save changes**, and let it redeploy. If the list includes `JWT_ACCESS_SECRET` or `PAYMENT_CALLBACK_SECRET`, create them as described under "The two secrets" in Part 3B. |
 | Logs show a database error | `DATABASE_URL` or `DATABASE_AUTH_TOKEN` is wrong. Create a new token **inside the database page** in Turso and paste it again. |
-| The site takes a minute to open | It was asleep. Set up Part 7. |
-| No verification email | Wrong SMTP values, sender not confirmed in Brevo, or the user left the email box empty. Check the Render Logs and the spam folder. |
+| The site takes a minute to open | It was asleep. Set up Part 6. |
+| "An account with this phone number already exists" | That number is registered. Sign in instead, or ask the admin to reset the password. |
+| Cannot sign in | Check the phone number is the one used at sign-up (spaces and `0712…` / `+254712…` are all fine) and the password is right. Admin can fix it: **Users > Reset password**. |
 | Admin cannot sign in | Check `ADMIN_PHONE` is typed the way you sign in. The admin is only created if it does not exist yet; to start over use a different phone number and re-add the three `ADMIN_*` variables. |
+| The site still shows a verification code, "verify your phone" or two-factor screen | You are looking at an **old version**. 1) On GitHub open `src/services/` and check that `otp.service.js` is **gone**; if it is still there, upload the new files again and delete that file (open it > trash icon > Commit). 2) In Render open **Events** and confirm the newest deploy says **Live** for your latest commit (use **Manual Deploy > Deploy latest commit** if not). 3) Hard-refresh your browser (Ctrl+Shift+R) or open the site in a private window. |
 | Payment screen has no Approve/Decline buttons | `PAYMENT_MODE` is not `sandbox`. Set it to `sandbox` in Render. |
 | Contribution refused: "only accepts whole amounts" | M-Pesa amounts must be whole shillings (no cents). |
 | "This fundraiser is not accepting contributions" | It is still Pending, ended, or paused. Approve it in Admin > Fundraisers and check its dates. |
@@ -198,13 +246,13 @@ Real money requires things only Safaricom can provide and is **not free**:
 | Everyone shares one rate limit | `TRUST_PROXY` is not `true`. |
 | `Invalid CallBackURL` (after enabling M-Pesa) | The Render address contains "mpesa" or "safaricom". Rename the service or use another domain. |
 
-## Appendix. Every setting and where it comes from (demo setup)
+## Appendix. Every setting and where it comes from (this setup)
 | Setting | Value | Source |
 |---|---|---|
 | `DATABASE_URL`, `DATABASE_AUTH_TOKEN` | `libsql://…` and token | Turso, Part 1 |
-| `ADMIN_FULL_NAME`, `ADMIN_PHONE`, `ADMIN_PASSWORD` | your choice | You, Part 4 (delete the password afterwards) |
-| `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM` | Brevo values | Part 2 |
-| `PAYMENT_MODE` | `sandbox` (demo) or `live` (Safaricom) | Part 4 and Part 9 |
+| `ADMIN_FULL_NAME`, `ADMIN_PHONE`, `ADMIN_PASSWORD` | your choice | You, Part 3 (delete the password afterwards) |
+| `PAYMENT_MODE` | `sandbox` (demo) or `live` (Safaricom) | Part 3 and Part 9 |
 | `JWT_ACCESS_SECRET`, `PAYMENT_CALLBACK_SECRET` | generated | Render, automatic |
-| `NODE_ENV`, `TRUST_PROXY`, `APP_TIMEZONE`, `CURRENCY_CODE`, `DEFAULT_COUNTRY_CALLING_CODE`, `SMS_PROVIDER`, `EMAIL_PROVIDER` | fixed values | `render.yaml` |
+| `NODE_ENV`, `TRUST_PROXY`, `APP_TIMEZONE`, `CURRENCY_CODE`, `DEFAULT_COUNTRY_CALLING_CODE`, `SMS_PROVIDER`, `EMAIL_PROVIDER` | fixed values (`console`, `console`) | `render.yaml` |
+| `GMAIL_*`, `EMAIL_FROM` | optional real emails | Part 8 |
 | `MPESA_*` | not needed in demo mode | Part 9 |

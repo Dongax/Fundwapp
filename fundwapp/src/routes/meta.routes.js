@@ -18,7 +18,6 @@ router.get('/config', async (req, res) => {
     phone: { calling_code: config.phone.callingCode },
     payment: { mode: config.payment.mode },
     limits: { title_max: config.limits.titleMax, description_max: config.limits.descriptionMax, message_max: config.limits.messageMax, max_upload_mb: config.storage.maxUploadMb },
-    otp: { length: config.auth.otpLength },
     settings,
     categories,
     payment_methods: await listActivePaymentMethods(),

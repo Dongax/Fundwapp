@@ -24,12 +24,13 @@ const day = (n) => new Intl.DateTimeFormat('en-CA', { timeZone: meta.timezone })
 // 1. Accounts
 const orgPhone = `07${rnd()}`; const adminPhone = `07${rnd()}`;
 const reg = await api('/auth/register', { method: 'POST', body: { full_name: 'Test Organizer', phone_number: orgPhone, email: `o${rnd()}@test.dev`, password: 'Passw0rd!x', role: 'organizer' } });
-check('register organizer', reg.status === 201 && reg.data.dev_otp, `status ${reg.status}`);
-const badOtp = await api('/auth/verify', { method: 'POST', body: { identifier: orgPhone, code: '000000' } });
-check('wrong OTP rejected', badOtp.status === 400);
-const ver = await api('/auth/verify', { method: 'POST', body: { identifier: orgPhone, code: reg.data.dev_otp } });
-check('verify OTP returns session', ver.status === 200 && ver.data.access_token);
-const org = ver.data.access_token;
+check('simple sign-up signs the person straight in (no code)', reg.status === 201 && !!reg.data.access_token && reg.data.dev_otp === undefined, `status ${reg.status}`);
+const org = reg.data.access_token;
+const dupe = await api('/auth/register', { method: 'POST', body: { full_name: 'Again', phone_number: orgPhone, password: 'Passw0rd!x', role: 'organizer' } });
+check('duplicate phone number refused', dupe.status === 409);
+const orgLogin = await api('/auth/login', { method: 'POST', body: { identifier: orgPhone, password: 'Passw0rd!x' } });
+check('login works right after sign-up', orgLogin.status === 200 && !!orgLogin.data.access_token);
+check('wrong password refused', (await api('/auth/login', { method: 'POST', body: { identifier: orgPhone, password: 'nope-nope-1' } })).status === 401);
 await createAdminUser({ full_name: 'Test Admin', phone_number: adminPhone, password: 'Passw0rd!x' });
 const adminLogin = await api('/auth/login', { method: 'POST', body: { identifier: adminPhone, password: 'Passw0rd!x' } });
 check('admin login', adminLogin.status === 200);
@@ -99,6 +100,19 @@ const notes = await api('/notifications', { token: org });
 check('organizer notifications logged', notes.data.items.some((n) => n.trigger_event === 'contribution_received'));
 check('organizer cannot reach admin API', (await api('/admin/overview', { token: org })).status === 403);
 check('anonymous cannot reach organizer API', (await api('/campaigns')).status === 401);
+
+// 6. Admin password reset (replaces emailed codes) and re-enabling codes through the setting
+const orgId = reg.data.user.id;
+const reset = await api(`/admin/users/${orgId}/reset-password`, { method: 'POST', token: adm });
+check('admin can issue a temporary password', reset.status === 200 && reset.data.temporary_password?.length === 12);
+check('old password stops working', (await api('/auth/login', { method: 'POST', body: { identifier: orgPhone, password: 'Passw0rd!x' } })).status === 401);
+check('temporary password works', (await api('/auth/login', { method: 'POST', body: { identifier: orgPhone, password: reset.data.temporary_password } })).status === 200);
+check('non-admin cannot reset passwords', (await api(`/admin/users/${orgId}/reset-password`, { method: 'POST', token: org })).status === 403);
+for (const [path, body] of [['/auth/verify', {}], ['/auth/resend-otp', {}], ['/auth/login/2fa', {}], ['/auth/forgot-password', {}], ['/auth/reset-password', {}], ['/auth/two-factor', {}]]) {
+  check(`code endpoint ${path} no longer exists`, (await api(path, { method: 'POST', body })).status === 404);
+}
+check('user records carry no verification fields', reg.data.user.verified === undefined && reg.data.user.two_factor_enabled === undefined);
+check('settings no longer include require_verification', !(await api('/admin/settings', { token: adm })).data.items.some((x) => x.key === 'require_verification'));
 
 console.log(failures ? `\n${failures} check(s) FAILED` : '\nAll checks passed');
 process.exit(failures ? 1 : 0);

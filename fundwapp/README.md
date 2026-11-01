@@ -7,7 +7,7 @@ Digital fundraising platform (M-Pesa only) built from the **Fundwapp System Desi
 | SDD component | Where it lives |
 |---|---|
 | Backend API (single entry point) | `src/app.js`, `src/routes/*` |
-| Auth service (register, login, logout, reset, OTP, 2FA) | `src/services/auth.service.js`, `otp.service.js` |
+| Auth service (register, login, logout, password change) | `src/services/auth.service.js` |
 | Campaign service (create, unique URL, QR, updates, sharing) | `src/services/campaign.service.js` |
 | Payment service (M-Pesa only: STK push, callbacks, reconciliation, B2C payouts) | `src/services/payment/*`, `reconciliation.service.js` |
 | Notification service (SMS + email, logged) | `src/services/notification/*` |
@@ -19,7 +19,10 @@ Digital fundraising platform (M-Pesa only) built from the **Fundwapp System Desi
 
 Field names match the ERD exactly. Extra tables support the flows the SDD describes: `payment_attempts` (a payment is pending until the gateway confirms; **a contribution row is only created on confirmation**), `otp_codes`, `refresh_tokens`, `flags`, `reconciliation_runs`, `audit_logs`, `campaign_updates`.
 
-> **Deploying?** Follow `DEPLOYMENT_GUIDE.md`: Render + Turso, free and browser-only, running in demo mode without M-Pesa. Part 9 covers switching on real M-Pesa later.
+> **Deploying?** Follow `DEPLOYMENT_GUIDE.md`: Render + Turso, free and browser-only, simple sign-up/login (no codes) and demo payments without M-Pesa. Part 9 covers switching on real M-Pesa later.
+
+## 0. Sign-up and login
+Sign-up needs a name, phone number and password and signs the person straight in; the phone number is the username. There are no verification codes, no two-factor sign-in and no reset-by-code. Passwords are reset by an admin (Admin > Users > Reset password), which shows a one-time temporary password.
 
 ## 1. Run it locally (SQLite file)
 
@@ -39,7 +42,7 @@ npm run admin:create      # prompts for name, phone, email, password. Creates th
 npm run dev               # http://localhost:3000   (admin portal: /admin)
 npm run test:smoke        # in a second terminal, with the server running (31 end-to-end checks)
 ```
-In development `SMS_PROVIDER=console` prints OTPs/messages to the server log, `EXPOSE_DEV_OTP=true` also shows the OTP in the UI, and `PAYMENT_MODE=sandbox` gives you Approve / Decline / Cancel buttons on the payment screen, so the whole flow (including the failure path) works without any real gateway.
+In development `SMS_PROVIDER=console` prints notification messages to the server log, and `PAYMENT_MODE=sandbox` gives you Approve / Decline / Cancel buttons on the payment screen, so the whole flow (including the failure path) works without any real gateway.
 
 ## 2. Switch to Turso
 
@@ -76,7 +79,7 @@ Set `PAYMENT_MODE=live`, `APP_BASE_URL` to your public HTTPS URL, and `PAYMENT_C
 
 * **M-Pesa (Daraja):** `MPESA_ENV`, `MPESA_CONSUMER_KEY`, `MPESA_CONSUMER_SECRET`, `MPESA_SHORTCODE`, `MPESA_PASSKEY`, `MPESA_TRANSACTION_TYPE` (Paybill or Till; for a Till also set `MPESA_PARTY_B`). Payouts (B2C) additionally need `MPESA_INITIATOR_NAME`, `MPESA_SECURITY_CREDENTIAL`, `MPESA_B2C_SHORTCODE`.
 * **SMS:** `SMS_PROVIDER=twilio` with `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` (see `DEPLOYMENT_GUIDE.md`). `vonage` and `africastalking` are also supported.
-* **Email:** `EMAIL_PROVIDER=smtp`, `EMAIL_FROM`, `SMTP_HOST/PORT/SECURE/USER/PASS`.
+* **Email:** `EMAIL_PROVIDER=gmail` (Gmail API over HTTPS, works on Render's free plan) with `GMAIL_USER`, `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`, `EMAIL_FROM`; or `EMAIL_PROVIDER=smtp` with `SMTP_*` (blocked on Render's free plan, fine on paid hosts).
 * **Cover photos in the cloud:** `STORAGE_DRIVER=s3` with the `S3_*` values (works with AWS S3, Cloudflare R2, Spaces, MinIO).
 * Behind a proxy/load balancer set `TRUST_PROXY=true` and `NODE_ENV=production`.
 
@@ -85,7 +88,7 @@ How a contribution is made trustworthy (SDD section 4): no contribution row exis
 ## 5. API summary
 
 Public: `GET /api/meta/config`, `GET /api/public/fundraisers`, `GET /api/public/fundraisers/:code` (+ `/live`, `/stream` SSE, `/qr.png`), `POST /api/public/fundraisers/:code/contribute`, `POST .../report`, `GET /api/payments/:id/status`.
-Auth: `POST /api/auth/register | verify | resend-otp | login | login/2fa | refresh | logout | forgot-password | reset-password | change-password | two-factor | become-organizer`, `GET|PATCH /api/auth/me`. Mobile apps send `Authorization: Bearer <access_token>` and may pass `refresh_token` in the body of `/refresh` and `/logout`; the web app uses an httpOnly cookie.
+Auth: `POST /api/auth/register | login | refresh | logout | change-password | become-organizer`, `GET|PATCH /api/auth/me`. Mobile apps send `Authorization: Bearer <access_token>` and may pass `refresh_token` in the body of `/refresh` and `/logout`; the web app uses an httpOnly cookie.
 Organizer: `/api/campaigns` (create, list, get, patch, `/:id/end`, `/updates`, `/contributions`, `/balance`, `/withdrawals`), `POST /api/uploads/images`, `GET /api/notifications`, `GET /api/withdrawals`.
 Admin (role `admin`): `/api/admin/overview | fundraisers | users | transactions | withdrawals | flags | reconciliation | settings | reference | audit`.
 Errors always look like `{ "error": { "code": "...", "message": "...", "details": [...] } }`.

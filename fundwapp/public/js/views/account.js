@@ -21,15 +21,6 @@ export default async function account() {
   } }, field('Current password', h('input', { name: 'current_password', type: 'password', required: true, autocomplete: 'current-password' })),
     field('New password', h('input', { name: 'new_password', type: 'password', minlength: 8, required: true, autocomplete: 'new-password' })), h('button', { class: 'btn', type: 'submit' }, 'Change password'));
 
-  const tf = h('form', { onSubmit: async (e) => {
-    e.preventDefault();
-    await busy(tf.querySelector('button'), async () => {
-      try { await api('/auth/two-factor', { method: 'POST', body: { enabled: !u.two_factor_enabled, password: formData(tf).password } }); await refresh(); toast(u.two_factor_enabled ? 'Two-factor sign-in turned off' : 'Two-factor sign-in turned on'); navigate('/account'); } catch (err) { toast(err.message, 'error'); }
-    });
-  } }, h('p', null, u.two_factor_enabled ? 'A code is sent to your phone every time you sign in.' : 'Add a one-time SMS code to every sign-in.'),
-    field('Confirm with your password', h('input', { name: 'password', type: 'password', required: true })),
-    h('button', { class: 'btn', type: 'submit' }, u.two_factor_enabled ? 'Turn off two-factor' : 'Turn on two-factor'));
-
   const log = h('div');
   async function loadLog(page = 1) {
     const data = await api(`/notifications?page=${page}&page_size=10`);
@@ -44,6 +35,5 @@ export default async function account() {
     h('h1', null, 'Your account'),
     h('div', { class: 'card' }, h('h2', null, 'Profile'), profile),
     h('div', { class: 'card' }, h('h2', null, 'Password'), pw),
-    h('div', { class: 'card' }, h('h2', null, 'Two-factor sign-in'), tf),
     h('div', { class: 'card' }, h('h2', null, 'Messages we sent you'), log)) };
 }

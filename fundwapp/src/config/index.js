@@ -18,6 +18,13 @@ const int = (k, d) => {
 const bool = (k, d = false) => (has(k) ? ['1', 'true', 'yes', 'on'].includes(env[k].trim().toLowerCase()) : d);
 const list = (k) => (has(k) ? env[k].split(',').map((s) => s.trim()).filter(Boolean) : []);
 
+// Report every missing required variable at once (instead of one per failed deploy).
+const missingVars = ['JWT_ACCESS_SECRET', 'DATABASE_URL', 'APP_TIMEZONE', 'CURRENCY_CODE', 'DEFAULT_COUNTRY_CALLING_CODE', 'PAYMENT_CALLBACK_SECRET'].filter((k) => !has(k));
+if (!has('APP_BASE_URL') && !has('RENDER_EXTERNAL_URL')) missingVars.unshift('APP_BASE_URL');
+if (missingVars.length) {
+  throw new Error(`Missing required environment variables: ${missingVars.join(', ')}. On Render add them under Service > Environment (see DEPLOYMENT_GUIDE.md Part 3); locally copy .env.example to .env and fill it in.`);
+}
+
 const nodeEnv = str('NODE_ENV', 'development');
 const isProd = nodeEnv === 'production';
 // Render sets RENDER_EXTERNAL_URL automatically; APP_BASE_URL (e.g. your custom domain) wins when set.
@@ -58,10 +65,6 @@ const config = {
     accessTtl: str('JWT_ACCESS_TTL', '15m'),
     refreshTtlDays: int('REFRESH_TOKEN_TTL_DAYS', 30),
     bcryptRounds: int('BCRYPT_ROUNDS', 12),
-    otpLength: int('OTP_LENGTH', 6),
-    otpTtlMinutes: int('OTP_TTL_MINUTES', 10),
-    otpMaxAttempts: int('OTP_MAX_ATTEMPTS', 5),
-    exposeDevOtp: bool('EXPOSE_DEV_OTP', false) && !isProd,
   },
   rateLimit: {
     windowMinutes: int('RATE_LIMIT_WINDOW_MINUTES', 15),
@@ -116,6 +119,15 @@ const config = {
       secure: bool('SMTP_SECURE', false),
       user: str('SMTP_USER'),
       pass: str('SMTP_PASS'),
+    },
+    // Gmail API over HTTPS (port 443). Works on Render's free plan, which blocks SMTP ports.
+    gmail: {
+      user: str('GMAIL_USER'),
+      clientId: str('GMAIL_CLIENT_ID'),
+      clientSecret: str('GMAIL_CLIENT_SECRET'),
+      refreshToken: str('GMAIL_REFRESH_TOKEN'),
+      tokenUrl: str('GMAIL_TOKEN_URL', 'https://oauth2.googleapis.com/token'),
+      apiBase: str('GMAIL_API_BASE', 'https://gmail.googleapis.com'),
     },
   },
   notifications: { maxAttempts: int('NOTIFICATION_MAX_ATTEMPTS', 3) },

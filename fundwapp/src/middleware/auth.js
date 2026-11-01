@@ -23,8 +23,3 @@ export const requireRole = (...roles) => async (req, res, next) => {
   if (!roles.includes(req.user.role)) throw forbidden();
   next();
 };
-
-export const requireVerified = (req, res, next) => {
-  if (!req.user?.verified) throw forbidden('Verify your phone number first', 'NOT_VERIFIED');
-  next();
-};

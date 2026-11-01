@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { parse, z } from '../utils/validate.js';
 import { pageParams, listResponse, clientContext } from '../utils/http.js';
 import config from '../config/index.js';
-import { requireAuth, requireRole, requireVerified } from '../middleware/auth.js';
+import { requireAuth, requireRole } from '../middleware/auth.js';
 import * as campaigns from '../services/campaign.service.js';
 import * as withdrawals from '../services/withdrawal.service.js';
 
@@ -23,7 +23,7 @@ const createSchema = z.object({
 
 router.get('/', requireRole('organizer', 'admin'), async (req, res) => res.json({ items: await campaigns.listOwn(req.user) }));
 
-router.post('/', requireRole('organizer', 'admin'), requireVerified, async (req, res) => {
+router.post('/', requireRole('organizer', 'admin'), async (req, res) => {
   res.status(201).json(await campaigns.createFundraiser(req.user, parse(createSchema, req.body), clientContext(req)));
 });
 
@@ -48,7 +48,7 @@ router.get('/:id/contributions', async (req, res) => {
 
 router.get('/:id/balance', async (req, res) => res.json(await withdrawals.balanceView(req.user, req.params.id)));
 router.get('/:id/withdrawals', async (req, res) => res.json({ items: await withdrawals.listForOrganizer(req.user, req.params.id) }));
-router.post('/:id/withdrawals', requireVerified, async (req, res) => {
+router.post('/:id/withdrawals', async (req, res) => {
   const body = parse(z.object({ amount, payout_method: z.string().min(1), payout_destination: z.string().min(3).max(300) }), req.body);
   res.status(201).json(await withdrawals.requestWithdrawal(req.user, req.params.id, body, clientContext(req)));
 });
