@@ -88,7 +88,45 @@ Create a text file `fundwapp-values.txt` on your computer. You will paste values
    * `Fundwapp listening on https://fundwapp-xxxx.onrender.com`
 7. Your public address is at the top of the service page. You do **not** need `APP_BASE_URL`; the app uses this address automatically.
 
-*Creating the service by hand instead of a Blueprint:* **New + > Web Service**, pick the repository, **Language** `Node`, **Build Command** `npm install`, **Start Command** `npm run db:setup && node scripts/create-admin.js --if-missing && npm start`, **Instance Type** `Free`, **Health Check Path** `/api/health`, and add under **Environment**: the five values above plus `NODE_VERSION=22`, `NODE_ENV=production`, `TRUST_PROXY=true`, `APP_TIMEZONE=Africa/Nairobi`, `CURRENCY_CODE=KES`, `DEFAULT_COUNTRY_CALLING_CODE=254`, `PAYMENT_MODE=sandbox`, `SMS_PROVIDER=console`, `EMAIL_PROVIDER=console`, and **Generate** for `JWT_ACCESS_SECRET` and `PAYMENT_CALLBACK_SECRET`.
+### 3B. Creating the service by hand (if you did not use a Blueprint)
+Use this if you chose **New + > Web Service**. Nothing works until **every** variable below exists, because the app refuses to start without them (the log says `Missing required environment variables: …`).
+
+**Settings tab**
+| Field | Value |
+|---|---|
+| Language | `Node` |
+| Branch | `main` |
+| Root Directory | leave **empty** if `package.json` is at the top of your repo; otherwise the folder name, e.g. `fundwapp` |
+| Build Command | `npm install` |
+| Start Command | `npm run db:setup && node scripts/create-admin.js --if-missing && npm start` |
+| Instance Type | `Free` |
+| Health Check Path | `/api/health` |
+
+**Environment tab > Add Environment Variable.** Add each row (Key on the left, Value on the right), then click **Save changes** once at the end:
+| Key | Value |
+|---|---|
+| `NODE_VERSION` | `22` |
+| `NODE_ENV` | `production` |
+| `TRUST_PROXY` | `true` |
+| `APP_TIMEZONE` | `Africa/Nairobi` |
+| `CURRENCY_CODE` | `KES` |
+| `CURRENCY_MINOR_UNITS` | `2` |
+| `LOCALE` | `en-KE` |
+| `DEFAULT_COUNTRY_CALLING_CODE` | `254` |
+| `PAYMENT_MODE` | `sandbox` |
+| `SMS_PROVIDER` | `console` |
+| `EMAIL_PROVIDER` | `console` |
+| `DATABASE_URL` | your `libsql://…` URL from Part 1 |
+| `DATABASE_AUTH_TOKEN` | your Turso token from Part 1 |
+| `ADMIN_FULL_NAME` | your name |
+| `ADMIN_PHONE` | your phone, e.g. `0712345678` |
+| `ADMIN_PASSWORD` | a strong password, 8+ characters |
+| `JWT_ACCESS_SECRET` | a secret of **32 or more characters** (see below) |
+| `PAYMENT_CALLBACK_SECRET` | a secret of **20 or more characters** (see below) |
+
+**The two secrets.** In the Value box click **Generate** if Render shows that button. If not, make your own: use your browser's or phone's password generator ("suggest strong password") with **40 characters**, letters and numbers only, and paste it. Use a *different* value for each secret. Keep both in your notes file; never share them. You do **not** need to set `APP_BASE_URL`; Render provides your address automatically.
+
+After saving, Render redeploys on its own (or click **Manual Deploy > Deploy latest commit**).
 
 ## Part 4. First checks
 1. Visit `https://<your-site>/api/health`. Expect `{"status":"ok", …}`.
@@ -194,7 +232,7 @@ Real money requires things only Safaricom can provide and is **not free**:
 | Symptom | Cause and fix |
 |---|---|
 | Build fails: `npm error enoent Could not read package.json … /opt/render/project/src/package.json` | Render cannot see `package.json` at the top of your repository. Open the repo on GitHub: if the top level shows a single folder (for example `fundwapp`) instead of `package.json`, go to Render > your service > **Settings > Build & Deploy > Root Directory**, type that folder's name, **Save Changes**, then **Manual Deploy > Clear build cache & deploy**. If `package.json` is missing, upload it (**Add file > Upload files**). Do not upload the `.zip` itself. |
-| Deploy fails with `Missing required environment variable …` | Add that variable in Render > Environment. |
+| Deploy fails with `Missing required environment variables: …` | The log lists **every** variable that is missing. Add them all in Render > your service > **Environment** (the full table is in Part 3B), click **Save changes**, and let it redeploy. If the list includes `JWT_ACCESS_SECRET` or `PAYMENT_CALLBACK_SECRET`, create them as described under "The two secrets" in Part 3B. |
 | Logs show a database error | `DATABASE_URL` or `DATABASE_AUTH_TOKEN` is wrong. Create a new token **inside the database page** in Turso and paste it again. |
 | The site takes a minute to open | It was asleep. Set up Part 6. |
 | "An account with this phone number already exists" | That number is registered. Sign in instead, or ask the admin to reset the password. |

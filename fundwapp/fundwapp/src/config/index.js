@@ -18,6 +18,13 @@ const int = (k, d) => {
 const bool = (k, d = false) => (has(k) ? ['1', 'true', 'yes', 'on'].includes(env[k].trim().toLowerCase()) : d);
 const list = (k) => (has(k) ? env[k].split(',').map((s) => s.trim()).filter(Boolean) : []);
 
+// Report every missing required variable at once (instead of one per failed deploy).
+const missingVars = ['JWT_ACCESS_SECRET', 'DATABASE_URL', 'APP_TIMEZONE', 'CURRENCY_CODE', 'DEFAULT_COUNTRY_CALLING_CODE', 'PAYMENT_CALLBACK_SECRET'].filter((k) => !has(k));
+if (!has('APP_BASE_URL') && !has('RENDER_EXTERNAL_URL')) missingVars.unshift('APP_BASE_URL');
+if (missingVars.length) {
+  throw new Error(`Missing required environment variables: ${missingVars.join(', ')}. On Render add them under Service > Environment (see DEPLOYMENT_GUIDE.md Part 3); locally copy .env.example to .env and fill it in.`);
+}
+
 const nodeEnv = str('NODE_ENV', 'development');
 const isProd = nodeEnv === 'production';
 // Render sets RENDER_EXTERNAL_URL automatically; APP_BASE_URL (e.g. your custom domain) wins when set.
